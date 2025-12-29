@@ -2589,8 +2589,8 @@ a, button, input, textarea, select {
 @media (max-width: 1024px) {
     .nav {
         padding: 20px 30px;
-        mix-blend-mode: normal;
-        background: rgba(0, 0, 0, 0.8);
+        mix-blend-mode: normal !important;
+        background: rgba(0, 0, 0, 0.9);
         backdrop-filter: blur(10px);
     }
     
@@ -2607,17 +2607,18 @@ a, button, input, textarea, select {
         width: 100%;
         max-width: 400px;
         height: 100vh;
-        background: linear-gradient(135deg, rgba(0, 0, 0, 0.98) 0%, rgba(26, 26, 26, 0.98) 100%);
+        background: #000000;
         backdrop-filter: blur(20px);
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        gap: 40px;
+        gap: 45px;
         padding: 60px 40px;
         transition: right 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         z-index: 9999;
-        border-left: 1px solid rgba(212, 165, 116, 0.2);
-        display: flex;
+        border-left: 2px solid var(--caramel);
+        display: flex !important;
+        mix-blend-mode: normal !important;
     }
     
     .nav-menu.active {
@@ -2625,15 +2626,19 @@ a, button, input, textarea, select {
     }
     
     .nav-menu a {
-        font-size: 28px;
-        font-weight: 500;
-        letter-spacing: 1px;
-        color: var(--white) !important;
+        font-size: 26px;
+        font-weight: 600;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: #FFFFFF !important;
         opacity: 0;
         transform: translateX(50px);
         transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         position: relative;
-        text-decoration: none;
+        text-decoration: none !important;
+        mix-blend-mode: normal !important;
+        filter: none !important;
+        display: block !important;
     }
     
     .nav-menu a::after {
@@ -2658,6 +2663,7 @@ a, button, input, textarea, select {
     .nav-menu.active a {
         opacity: 1 !important;
         transform: translateX(0);
+        color: #FFFFFF !important;
     }
     
     .nav-menu.active a:nth-child(1) { transition-delay: 0.1s; }
