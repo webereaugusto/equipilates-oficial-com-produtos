@@ -172,7 +172,7 @@ body > * {
     background: none;
     border: none;
     width: 30px;
-    height: 20px;
+    height: 24px;
     flex-direction: column;
     justify-content: space-between;
     cursor: pointer;
@@ -185,6 +185,7 @@ body > * {
     background: var(--white);
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     transform-origin: center;
+    display: block;
 }
 
 /* ==========================================
@@ -271,6 +272,7 @@ body > * {
 .content-main {
     max-width: 800px;
     padding-left: 180px;
+    margin-top: 60px;
 }
 
 .content-tag {
@@ -1630,7 +1632,8 @@ a, button, input, textarea, select {
     
     .hero-content {
         padding: 0 20px;
-        align-items: flex-start;
+        align-items: center;
+        justify-content: center;
     }
     
     .content-number {
@@ -1642,6 +1645,7 @@ a, button, input, textarea, select {
     .content-main {
         padding-left: 0;
         max-width: 100%;
+        margin-top: 40px;
     }
     
     .content-tag {
@@ -2586,7 +2590,7 @@ a, button, input, textarea, select {
     .nav {
         padding: 20px 30px;
         mix-blend-mode: normal;
-        background: rgba(0, 0, 0, 0.5);
+        background: rgba(0, 0, 0, 0.8);
         backdrop-filter: blur(10px);
     }
     
@@ -2612,8 +2616,8 @@ a, button, input, textarea, select {
         padding: 60px 40px;
         transition: right 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         z-index: 9999;
-        mix-blend-mode: normal;
         border-left: 1px solid rgba(212, 165, 116, 0.2);
+        display: flex;
     }
     
     .nav-menu.active {
@@ -2622,10 +2626,14 @@ a, button, input, textarea, select {
     
     .nav-menu a {
         font-size: 28px;
+        font-weight: 500;
+        letter-spacing: 1px;
+        color: var(--white) !important;
         opacity: 0;
         transform: translateX(50px);
         transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         position: relative;
+        text-decoration: none;
     }
     
     .nav-menu a::after {
@@ -2639,12 +2647,16 @@ a, button, input, textarea, select {
         transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
     
+    .nav-menu a:hover {
+        color: var(--caramel) !important;
+    }
+    
     .nav-menu a:hover::after {
         width: 100%;
     }
     
     .nav-menu.active a {
-        opacity: 1;
+        opacity: 1 !important;
         transform: translateX(0);
     }
     
@@ -2660,12 +2672,17 @@ a, button, input, textarea, select {
         position: relative;
     }
     
-    .nav-toggle.active span:first-child {
-        transform: rotate(45deg) translateY(8px);
+    .nav-toggle.active span:nth-child(1) {
+        transform: rotate(45deg) translate(8px, 8px);
     }
     
-    .nav-toggle.active span:last-child {
-        transform: rotate(-45deg) translateY(-8px);
+    .nav-toggle.active span:nth-child(2) {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    
+    .nav-toggle.active span:nth-child(3) {
+        transform: rotate(-45deg) translate(8px, -8px);
     }
     
     /* Hero Responsive */
