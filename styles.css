@@ -4532,6 +4532,131 @@ a, button, input, textarea, select {
 }
 
 /* ==========================================
+   NEW SECTION: Core Values
+   ========================================== */
+.section-core-values {
+    background: #ffffff;
+    padding: 0;
+    position: relative;
+}
+
+.core-values-container {
+    display: flex;
+    align-items: stretch;
+    min-height: 500px;
+}
+
+.core-values-image {
+    flex: 0 0 45%;
+    position: relative;
+    overflow: hidden;
+}
+
+.core-values-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.core-values-content {
+    flex: 1;
+    padding: 80px 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: #fff;
+}
+
+.core-values-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 50px;
+    letter-spacing: 2px;
+}
+
+.core-values-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 40px;
+}
+
+.core-value-item h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 15px;
+    letter-spacing: 1px;
+}
+
+.core-value-item p {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: #555;
+}
+
+/* Accent line on top of title */
+.core-values-title::before {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 3px;
+    background: var(--accent-gold, #ff943f);
+    margin-bottom: 20px;
+}
+
+@media (max-width: 1024px) {
+    .core-values-container {
+        flex-direction: column;
+    }
+    
+    .core-values-image {
+        flex: none;
+        height: 350px;
+    }
+    
+    .core-values-content {
+        padding: 60px 40px;
+    }
+    
+    .core-values-title {
+        font-size: 2.8rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .core-values-image {
+        height: 280px;
+    }
+    
+    .core-values-content {
+        padding: 40px 25px;
+    }
+    
+    .core-values-title {
+        font-size: 2.2rem;
+        margin-bottom: 30px;
+    }
+    
+    .core-values-grid {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+    
+    .core-value-item h3 {
+        font-size: 1.1rem;
+    }
+    
+    .core-value-item p {
+        font-size: 0.9rem;
+    }
+}
+
+/* ==========================================
    NEW SECTION: Features Grid (Inspired by Print)
    ========================================== */
 .section-features-grid {
