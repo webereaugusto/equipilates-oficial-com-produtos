@@ -4312,6 +4312,226 @@ a, button, input, textarea, select {
 }
 
 /* ==========================================
+   NEW SECTION: Process/Infographic Timeline
+   ========================================== */
+.section-process {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0d0d0d 100%);
+    padding: 100px 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.section-process::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 20% 80%, rgba(255, 148, 63, 0.03) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 148, 63, 0.03) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.process-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 40px;
+    position: relative;
+    z-index: 2;
+}
+
+.process-header {
+    text-align: center;
+    margin-bottom: 80px;
+}
+
+.process-header .section-label {
+    display: inline-block;
+    font-family: 'Sora', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--caramel);
+    margin-bottom: 20px;
+    padding: 8px 20px;
+    border: 1px solid rgba(255, 148, 63, 0.3);
+}
+
+.process-title {
+    font-family: 'Sora', sans-serif;
+    font-size: clamp(32px, 5vw, 48px);
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 20px;
+}
+
+.process-title .accent {
+    color: var(--caramel);
+}
+
+.process-subtitle {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.6);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.process-timeline {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 80px;
+}
+
+.process-step {
+    flex: 1;
+    max-width: 280px;
+    text-align: center;
+    padding: 0 20px;
+    position: relative;
+}
+
+.step-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    background: linear-gradient(135deg, var(--caramel) 0%, #e07830 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.step-icon svg {
+    width: 40px;
+    height: 40px;
+    color: #000;
+}
+
+.step-number {
+    font-family: 'Sora', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--caramel);
+    letter-spacing: 2px;
+    margin-bottom: 15px;
+}
+
+.step-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 15px;
+}
+
+.step-text {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    line-height: 1.7;
+    color: rgba(255, 255, 255, 0.65);
+    margin: 0;
+}
+
+.process-connector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 35px;
+    min-width: 60px;
+}
+
+.connector-line {
+    width: 40px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--caramel), rgba(255, 148, 63, 0.3));
+}
+
+.connector-arrow {
+    font-size: 20px;
+    color: var(--caramel);
+    margin-left: -5px;
+}
+
+.process-stats {
+    display: flex;
+    justify-content: center;
+    gap: 60px;
+    padding-top: 60px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-number {
+    display: block;
+    font-family: 'Sora', sans-serif;
+    font-size: clamp(36px, 5vw, 48px);
+    font-weight: 700;
+    color: var(--caramel);
+    line-height: 1;
+    margin-bottom: 10px;
+}
+
+.stat-label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Process Section Responsive */
+@media (max-width: 1100px) {
+    .process-timeline {
+        flex-wrap: wrap;
+        gap: 40px;
+    }
+    
+    .process-connector {
+        display: none;
+    }
+    
+    .process-step {
+        flex: 0 0 calc(50% - 20px);
+        max-width: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .section-process {
+        padding: 60px 0;
+    }
+    
+    .process-container {
+        padding: 0 20px;
+    }
+    
+    .process-header {
+        margin-bottom: 50px;
+    }
+    
+    .process-step {
+        flex: 0 0 100%;
+    }
+    
+    .process-stats {
+        flex-wrap: wrap;
+        gap: 30px;
+    }
+    
+    .stat-item {
+        flex: 0 0 calc(50% - 15px);
+    }
+}
+
+/* ==========================================
    NEW SECTION: Features Grid (Inspired by Print)
    ========================================== */
 .section-features-grid {
