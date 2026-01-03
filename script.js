@@ -1514,19 +1514,7 @@ fadeElements.forEach(el => fadeObserver.observe(el));
 
 // ==========================================
 // MOUSE MOVE PARALLAX
-// ==========================================
-document.addEventListener('mousemove', (e) => {
-    const mouseX = e.clientX / window.innerWidth - 0.5;
-    const mouseY = e.clientY / window.innerHeight - 0.5;
-    
-    document.querySelectorAll('.feature-item, .innovation-card').forEach(el => {
-        const speed = 20;
-        const x = mouseX * speed;
-        const y = mouseY * speed;
-        
-        el.style.transform = `translate(${x}px, ${y}px)`;
-    });
-});
+// Parallax effect removed per user request
 
 // ==========================================
 // DUPLICATE TESTIMONIALS FOR INFINITE SCROLL
