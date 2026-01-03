@@ -4613,6 +4613,25 @@ a, button, input, textarea, select {
     font-size: 0.95rem;
     line-height: 1.7;
     color: #666;
+    margin-bottom: 20px;
+}
+
+.btn-core-value {
+    display: inline-block;
+    font-family: 'Sora', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--caramel);
+    text-decoration: none;
+    padding: 12px 0;
+    border-bottom: 2px solid var(--caramel);
+    transition: all 0.3s ease;
+}
+
+.btn-core-value:hover {
+    color: #1a1a1a;
+    border-color: #1a1a1a;
+    padding-left: 10px;
 }
 
 /* Removed accent line - using section-label instead */
