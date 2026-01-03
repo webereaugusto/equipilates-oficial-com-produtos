@@ -535,11 +535,11 @@ function initHeroSlider() {
         'pt-BR': [
             {
                 number: '01',
-                tag: 'AUTORIDADE GLOBAL',
-                title: ['EQUIPILATES:', '18 ANOS MOVENDO O PILATES'],
-                description: 'Mais de 30.000 estudios montados e presenca internacional.<br/>A escolha de quem quer ser referencia.',
-                cta1: { text: 'Solicitar Orcamento', link: buildWhatsAppLink('Ola, vim pelo site da Equipilates e gostaria de solicitar um orcamento.') },
-                cta2: { text: 'Conhecer Nossa Historia', link: '#manifesto' }
+                tag: 'FÁBRICA LÍDER DESDE 2006',
+                title: ['EQUIPAMENTOS DE PILATES', 'PROFISSIONAIS PARA SEU ESTÚDIO'],
+                description: 'Linha Clássica e Contemporânea com 2 anos de garantia.<br/>Mais de 30.000 estúdios equipados em 24+ países.',
+                cta1: { text: 'Solicitar Orçamento', link: buildWhatsAppLink('Olá, vim pelo site da Equipilates e gostaria de solicitar um orçamento.') },
+                cta2: { text: 'Conhecer Nossa História', link: '#manifesto' }
             },
             {
                 number: '02',
@@ -569,9 +569,9 @@ function initHeroSlider() {
         'en': [
             {
                 number: '01',
-                tag: 'GLOBAL AUTHORITY',
-                title: ['EQUIPILATES:', '18 YEARS MOVING PILATES WORLDWIDE'],
-                description: '30,000+ studios built and international presence.<br/>Chosen by those who want to be a reference.',
+                tag: 'LEADING FACTORY SINCE 2006',
+                title: ['PILATES EQUIPMENT', 'PROFESSIONAL FOR YOUR STUDIO'],
+                description: 'Classic and Contemporary Lines with 2-year warranty.<br/>Over 30,000 studios equipped in 24+ countries.',
                 cta1: { text: 'Request a Quote', link: buildWhatsAppLink('Hello, I would like a quote for Pilates equipment.') },
                 cta2: { text: 'Our Story', link: '#manifesto' }
             },
@@ -603,10 +603,10 @@ function initHeroSlider() {
         'es': [
             {
                 number: '01',
-                tag: 'AUTORIDAD GLOBAL',
-                title: ['EQUIPILATES:', '18 ANOS MOVIENDO EL PILATES'],
-                description: 'Mas de 30.000 estudios montados y presencia internacional.<br/>La eleccion de quienes quieren ser referencia.',
-                cta1: { text: 'Solicitar Cotizacion', link: buildWhatsAppLink('Hola, quisiera una cotizacion para equipos de Pilates.') },
+                tag: 'FÁBRICA LÍDER DESDE 2006',
+                title: ['EQUIPOS DE PILATES', 'PROFESIONALES PARA SU ESTUDIO'],
+                description: 'Línea Clásica y Contemporánea con 2 años de garantía.<br/>Más de 30.000 estudios equipados en 24+ países.',
+                cta1: { text: 'Solicitar Cotización', link: buildWhatsAppLink('Hola, quisiera una cotización para equipos de Pilates.') },
                 cta2: { text: 'Nuestra Historia', link: '#manifesto' }
             },
             {
@@ -637,10 +637,10 @@ function initHeroSlider() {
         'de': [
             {
                 number: '01',
-                tag: 'GLOBALE AUTORITAT',
-                title: ['EQUIPILATES:', '18 JAHRE PILATES BEWEGEN'],
-                description: 'Uber 30.000 Studios ausgestattet und internationale Prasenz.<br/>Die Wahl fur alle, die Referenz sein wollen.',
-                cta1: { text: 'Angebot Anfordern', link: buildWhatsAppLink('Hallo, ich mochte ein Angebot fur Pilates-Gerate.') },
+                tag: 'FÜHRENDE FABRIK SEIT 2006',
+                title: ['PILATES-GERÄTE', 'PROFESSIONELL FÜR IHR STUDIO'],
+                description: 'Klassische und Zeitgenössische Linien mit 2 Jahren Garantie.<br/>Über 30.000 Studios in 24+ Ländern ausgestattet.',
+                cta1: { text: 'Angebot Anfordern', link: buildWhatsAppLink('Hallo, ich möchte ein Angebot für Pilates-Geräte.') },
                 cta2: { text: 'Unsere Geschichte', link: '#manifesto' }
             },
             {
