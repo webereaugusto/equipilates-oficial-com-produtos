@@ -16,7 +16,6 @@ function initElasticAnimations() {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('active');
-                observer.unobserve(entry.target);
             }
         });
     }, {
@@ -38,7 +37,6 @@ function initFigmaMotion() {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('revealed');
-                revealObserver.unobserve(entry.target);
             }
         });
     }, {
@@ -91,7 +89,6 @@ function initFigmaMotion() {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('revealed');
-                statsObserver.unobserve(entry.target);
             }
         });
     }, {
@@ -174,6 +171,163 @@ function initSmoothScrollMomentum() {
 }
 
 // Init all
+// ==========================================
+// CARROSSEL LINHA CLÁSSICA
+// ==========================================
+function initClassicaCarousel() {
+    const carousel = document.querySelector('.classica-carousel');
+    if (!carousel) return;
+    
+    const track = carousel.querySelector('.classica-carousel-track');
+    const slides = carousel.querySelectorAll('.classica-slide');
+    const prevBtn = document.querySelector('.classica-prev');
+    const nextBtn = document.querySelector('.classica-next');
+    const dotsContainer = document.querySelector('.classica-dots');
+    
+    if (!track || slides.length === 0) return;
+    
+    let currentIndex = 0;
+    let slidesPerView = 3;
+    let slideWidth = 0;
+    let maxIndex = 0;
+    let autoplayInterval;
+    
+    // Calcular slides por visualização baseado na tela
+    function calculateSlidesPerView() {
+        if (window.innerWidth <= 768) {
+            slidesPerView = 1;
+        } else if (window.innerWidth <= 1024) {
+            slidesPerView = 2;
+        } else {
+            slidesPerView = 3;
+        }
+        maxIndex = Math.max(0, slides.length - slidesPerView);
+    }
+    
+    // Calcular largura do slide
+    function calculateSlideWidth() {
+        const gap = 30;
+        const containerWidth = carousel.offsetWidth;
+        slideWidth = (containerWidth - (gap * (slidesPerView - 1))) / slidesPerView;
+    }
+    
+    // Criar dots
+    function createDots() {
+        dotsContainer.innerHTML = '';
+        const totalDots = maxIndex + 1;
+        for (let i = 0; i < totalDots; i++) {
+            const dot = document.createElement('button');
+            dot.classList.add('classica-dot');
+            if (i === 0) dot.classList.add('active');
+            dot.addEventListener('click', () => goToSlide(i));
+            dotsContainer.appendChild(dot);
+        }
+    }
+    
+    // Atualizar dots
+    function updateDots() {
+        const dots = dotsContainer.querySelectorAll('.classica-dot');
+        dots.forEach((dot, index) => {
+            dot.classList.toggle('active', index === currentIndex);
+        });
+    }
+    
+    // Ir para slide específico
+    function goToSlide(index) {
+        currentIndex = Math.max(0, Math.min(index, maxIndex));
+        const gap = 30;
+        const offset = currentIndex * (slideWidth + gap);
+        track.style.transform = `translateX(-${offset}px)`;
+        updateDots();
+    }
+    
+    // Próximo slide
+    function nextSlide() {
+        if (currentIndex < maxIndex) {
+            goToSlide(currentIndex + 1);
+        } else {
+            goToSlide(0); // Loop para o início
+        }
+    }
+    
+    // Slide anterior
+    function prevSlide() {
+        if (currentIndex > 0) {
+            goToSlide(currentIndex - 1);
+        } else {
+            goToSlide(maxIndex); // Loop para o fim
+        }
+    }
+    
+    // Autoplay
+    function startAutoplay() {
+        autoplayInterval = setInterval(nextSlide, 5000);
+    }
+    
+    function stopAutoplay() {
+        clearInterval(autoplayInterval);
+    }
+    
+    // Event listeners
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            prevSlide();
+            stopAutoplay();
+            startAutoplay();
+        });
+    }
+    
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            nextSlide();
+            stopAutoplay();
+            startAutoplay();
+        });
+    }
+    
+    // Touch/Swipe support
+    let touchStartX = 0;
+    let touchEndX = 0;
+    
+    carousel.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+        stopAutoplay();
+    }, { passive: true });
+    
+    carousel.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        const diff = touchStartX - touchEndX;
+        if (Math.abs(diff) > 50) {
+            if (diff > 0) {
+                nextSlide();
+            } else {
+                prevSlide();
+            }
+        }
+        startAutoplay();
+    }, { passive: true });
+    
+    // Pausar autoplay no hover
+    carousel.addEventListener('mouseenter', stopAutoplay);
+    carousel.addEventListener('mouseleave', startAutoplay);
+    
+    // Resize handler
+    function handleResize() {
+        calculateSlidesPerView();
+        calculateSlideWidth();
+        createDots();
+        goToSlide(Math.min(currentIndex, maxIndex));
+    }
+    
+    window.addEventListener('resize', handleResize);
+    
+    // Inicialização
+    calculateSlidesPerView();
+    calculateSlideWidth();
+    createDots();
+    startAutoplay();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initNavigation();
     initScrollProgress();
@@ -192,52 +346,9 @@ document.addEventListener('DOMContentLoaded', () => {
     initFigmaMotion();
     initParallax();
     initSmoothScrollMomentum();
-    initModernRevealAnimations();
+    initGalleryFilters();
+    initClassicaCarousel();
 });
-
-// ==========================================
-// MODERN REVEAL ANIMATIONS (Section 2)
-// ==========================================
-function initModernRevealAnimations() {
-    // Observer for slide-up animations
-    const slideUpElements = document.querySelectorAll('.anim-slide-up');
-    const popElements = document.querySelectorAll('.anim-pop');
-    const imageFadeContainers = document.querySelectorAll('.image-fade-container');
-    
-    const slideUpObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
-                slideUpObserver.unobserve(entry.target);
-            }
-        });
-    }, {
-        threshold: 0.15,
-        rootMargin: '0px 0px -50px 0px'
-    });
-    
-    slideUpElements.forEach(el => slideUpObserver.observe(el));
-    popElements.forEach(el => slideUpObserver.observe(el));
-    
-    // Observer for image fade animation
-    const imageFadeObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                // Trigger the fade animation on the wrapper
-                const wrapper = entry.target.querySelector('.image-fade-wrapper');
-                if (wrapper) {
-                    wrapper.classList.add('revealed');
-                }
-                imageFadeObserver.unobserve(entry.target);
-            }
-        });
-    }, {
-        threshold: 0.2,
-        rootMargin: '0px 0px -50px 0px'
-    });
-    
-    imageFadeContainers.forEach(el => imageFadeObserver.observe(el));
-}
 
 // ==========================================
 // HERO AUTO SLIDER WITH FADE
@@ -266,33 +377,33 @@ function initHeroSlider() {
                 number: '01',
                 tag: 'AUTORIDADE GLOBAL',
                 title: ['EQUIPILATES:', '18 ANOS MOVENDO O PILATES'],
-                description: 'Mais de 30.000 estúdios montados e presença internacional.<br/>A escolha de quem quer ser referência.',
-                cta1: { text: 'Solicitar Orçamento', link: buildWhatsAppLink('Olá, vim pelo site da Equipilates e gostaria de solicitar um orçamento para upgrade/expansão do meu estúdio.') },
-                cta2: { text: 'Conhecer Nossa História', link: '#manifesto' }
+                description: 'Mais de 30.000 estudios montados e presenca internacional.<br/>A escolha de quem quer ser referencia.',
+                cta1: { text: 'Solicitar Orcamento', link: buildWhatsAppLink('Ola, vim pelo site da Equipilates e gostaria de solicitar um orcamento.') },
+                cta2: { text: 'Conhecer Nossa Historia', link: '#manifesto' }
             },
             {
                 number: '02',
-                tag: 'LINHA CLÁSSICA',
+                tag: 'LINHA CLASSICA',
                 title: ['FIDELIDADE TOTAL', 'AO LEGADO DE JOSEPH PILATES'],
-                description: 'Equipamentos desenvolvidos rigorosamente nas medidas originais.<br/>O padrão ouro para o método clássico.',
-                cta1: { text: 'Ver Linha Clássica', link: '#classic' },
-                cta2: { text: 'Falar com Consultor', link: buildWhatsAppLink('Olá, vim pelo site da Equipilates e quero entender a Linha Clássica (medidas originais) para meu estúdio. Pode me orientar?') }
+                description: 'Equipamentos desenvolvidos rigorosamente nas medidas originais.<br/>O padrao ouro para o metodo classico.',
+                cta1: { text: 'Ver Linha Classica', link: '#classic' },
+                cta2: { text: 'Falar com Consultor', link: buildWhatsAppLink('Ola, quero entender a Linha Classica para meu estudio.') }
             },
             {
                 number: '03',
-                tag: 'NEGÓCIO & ROI',
-                title: ['TRANSFORME SEU SONHO', 'EM UM NEGÓCIO DE SUCESSO'],
-                description: 'Margens de lucro de até 62,7% mostram: Pilates pode ser muito rentável<br/>com os parceiros certos. Comece seu projeto agora.',
+                tag: 'NEGOCIO E ROI',
+                title: ['TRANSFORME SEU SONHO', 'EM UM NEGOCIO DE SUCESSO'],
+                description: 'Margens de lucro de ate 62,7% mostram: Pilates pode ser muito rentavel<br/>com os parceiros certos.',
                 cta1: { text: 'Monte seu Studio', link: '#wizard' },
-                cta2: { text: 'Ver Condições de Pagamento', link: buildWhatsAppLink('Olá, vim pelo site da Equipilates e gostaria de ver as condições de pagamento (parcelamento) para equipamentos de Pilates.') }
+                cta2: { text: 'Ver Condicoes de Pagamento', link: buildWhatsAppLink('Ola, gostaria de ver as condicoes de pagamento para equipamentos.') }
             },
             {
                 number: '04',
-                tag: 'INOVAÇÃO & GARANTIA',
-                title: ['EXCELÊNCIA E INOVAÇÃO', 'EM CADA MOVIMENTO'],
-                description: 'Robustez e design avançado com 2 anos de garantia.<br/>Pagamento facilitado em até 36x direto de fábrica.',
-                cta1: { text: 'Ver Linha Contemporânea', link: '#contemporary' },
-                cta2: { text: 'Baixar Catálogo', link: buildWhatsAppLink('Olá! Vim pelo site da Equipilates e gostaria de receber o catálogo (linha clássica e contemporânea).') }
+                tag: 'INOVACAO E GARANTIA',
+                title: ['EXCELENCIA E INOVACAO', 'EM CADA MOVIMENTO'],
+                description: 'Robustez e design avancado com 2 anos de garantia.<br/>Pagamento facilitado em ate 36x direto de fabrica.',
+                cta1: { text: 'Ver Linha Contemporanea', link: '#contemporary' },
+                cta2: { text: 'Baixar Catalogo', link: buildWhatsAppLink('Ola! Gostaria de receber o catalogo da Equipilates.') }
             }
         ],
         'en': [
@@ -301,100 +412,100 @@ function initHeroSlider() {
                 tag: 'GLOBAL AUTHORITY',
                 title: ['EQUIPILATES:', '18 YEARS MOVING PILATES WORLDWIDE'],
                 description: '30,000+ studios built and international presence.<br/>Chosen by those who want to be a reference.',
-                cta1: { text: 'Request a Quote', link: buildWhatsAppLink('Hello, I found Equipilates through the website and would like a quote for a studio upgrade/expansion.') },
+                cta1: { text: 'Request a Quote', link: buildWhatsAppLink('Hello, I would like a quote for Pilates equipment.') },
                 cta2: { text: 'Our Story', link: '#manifesto' }
             },
             {
                 number: '02',
                 tag: 'CLASSIC LINE',
-                title: ['FULL FIDELITY', 'TO JOSEPH PILATES’ LEGACY'],
+                title: ['FULL FIDELITY', 'TO JOSEPH PILATES LEGACY'],
                 description: 'Built strictly to the original measurements.<br/>The gold standard for classical method.',
                 cta1: { text: 'See Classic Line', link: '#classic' },
-                cta2: { text: 'Talk to a Consultant', link: buildWhatsAppLink('Hello, I want to understand the Classic Line (original measurements) for my studio. Can you help?') }
+                cta2: { text: 'Talk to a Consultant', link: buildWhatsAppLink('Hello, I want to understand the Classic Line for my studio.') }
             },
             {
                 number: '03',
-                tag: 'BUSINESS & ROI',
+                tag: 'BUSINESS AND ROI',
                 title: ['TURN YOUR DREAM', 'INTO A SUCCESSFUL STUDIO'],
-                description: 'Up to 62.7% margins show Pilates can be highly profitable<br/>with the right partners. Start now.',
+                description: 'Up to 62.7% margins show Pilates can be highly profitable<br/>with the right partners.',
                 cta1: { text: 'Build My Studio', link: '#wizard' },
-                cta2: { text: 'Payment Options', link: buildWhatsAppLink('Hello, I would like to see payment options/financing for Pilates equipment.') }
+                cta2: { text: 'Payment Options', link: buildWhatsAppLink('Hello, I would like to see payment options for equipment.') }
             },
             {
                 number: '04',
-                tag: 'INNOVATION & WARRANTY',
-                title: ['EXCELLENCE & INNOVATION', 'IN EVERY MOVE'],
+                tag: 'INNOVATION AND WARRANTY',
+                title: ['EXCELLENCE AND INNOVATION', 'IN EVERY MOVE'],
                 description: 'Robust design with 2-year warranty.<br/>Up to 36 installments direct from factory.',
                 cta1: { text: 'See Contemporary Line', link: '#contemporary' },
-                cta2: { text: 'Get the Catalog', link: buildWhatsAppLink('Hello! I would like to receive the Equipilates catalog (classic & contemporary).') }
+                cta2: { text: 'Get the Catalog', link: buildWhatsAppLink('Hello! I would like to receive the Equipilates catalog.') }
             }
         ],
         'es': [
             {
                 number: '01',
                 tag: 'AUTORIDAD GLOBAL',
-                title: ['EQUIPILATES:', '18 AÑOS MOVIENDO EL PILATES'],
-                description: 'Más de 30.000 estudios montados y presencia internacional.<br/>La elección de quienes quieren ser referencia.',
-                cta1: { text: 'Solicitar Cotización', link: buildWhatsAppLink('Hola, encontré Equipilates por el sitio y quisiera una cotización para la ampliación/actualización de mi estudio.') },
+                title: ['EQUIPILATES:', '18 ANOS MOVIENDO EL PILATES'],
+                description: 'Mas de 30.000 estudios montados y presencia internacional.<br/>La eleccion de quienes quieren ser referencia.',
+                cta1: { text: 'Solicitar Cotizacion', link: buildWhatsAppLink('Hola, quisiera una cotizacion para equipos de Pilates.') },
                 cta2: { text: 'Nuestra Historia', link: '#manifesto' }
             },
             {
                 number: '02',
-                tag: 'LÍNEA CLÁSICA',
+                tag: 'LINEA CLASICA',
                 title: ['FIDELIDAD TOTAL', 'AL LEGADO DE JOSEPH PILATES'],
-                description: 'Equipos desarrollados estrictamente con medidas originales.<br/>El estándar de oro para el método clásico.',
-                cta1: { text: 'Ver Línea Clásica', link: '#classic' },
-                cta2: { text: 'Hablar con un Asesor', link: buildWhatsAppLink('Hola, quiero entender la Línea Clásica (medidas originales) para mi estudio. ¿Me orientan?') }
+                description: 'Equipos desarrollados estrictamente con medidas originales.<br/>El estandar de oro para el metodo clasico.',
+                cta1: { text: 'Ver Linea Clasica', link: '#classic' },
+                cta2: { text: 'Hablar con un Asesor', link: buildWhatsAppLink('Hola, quiero entender la Linea Clasica para mi estudio.') }
             },
             {
                 number: '03',
-                tag: 'NEGOCIO & ROI',
-                title: ['CONVIERTE TU SUEÑO', 'EN UN NEGOCIO EXITOSO'],
-                description: 'Márgenes de hasta 62,7% muestran que Pilates puede ser rentable<br/>con los socios correctos. Empieza ahora.',
+                tag: 'NEGOCIO Y ROI',
+                title: ['CONVIERTE TU SUENO', 'EN UN NEGOCIO EXITOSO'],
+                description: 'Margenes de hasta 62,7% muestran que Pilates puede ser rentable<br/>con los socios correctos.',
                 cta1: { text: 'Armar mi Estudio', link: '#wizard' },
-                cta2: { text: 'Ver Formas de Pago', link: buildWhatsAppLink('Hola, quisiera ver las formas de pago/financiación para equipos de Pilates.') }
+                cta2: { text: 'Ver Formas de Pago', link: buildWhatsAppLink('Hola, quisiera ver las formas de pago para equipos.') }
             },
             {
                 number: '04',
-                tag: 'INNOVACIÓN & GARANTÍA',
-                title: ['EXCELENCIA E INNOVACIÓN', 'EN CADA MOVIMIENTO'],
-                description: 'Robustez y diseño avanzado con 2 años de garantía.<br/>Hasta 36 cuotas directo de fábrica.',
-                cta1: { text: 'Ver Línea Contemporánea', link: '#contemporary' },
-                cta2: { text: 'Descargar Catálogo', link: buildWhatsAppLink('Hola! Quisiera recibir el catálogo de Equipilates (clásico y contemporáneo).') }
+                tag: 'INNOVACION Y GARANTIA',
+                title: ['EXCELENCIA E INNOVACION', 'EN CADA MOVIMIENTO'],
+                description: 'Robustez y diseno avanzado con 2 anos de garantia.<br/>Hasta 36 cuotas directo de fabrica.',
+                cta1: { text: 'Ver Linea Contemporanea', link: '#contemporary' },
+                cta2: { text: 'Descargar Catalogo', link: buildWhatsAppLink('Hola! Quisiera recibir el catalogo de Equipilates.') }
             }
         ],
         'de': [
             {
                 number: '01',
-                tag: 'GLOBALE AUTORITÄT',
+                tag: 'GLOBALE AUTORITAT',
                 title: ['EQUIPILATES:', '18 JAHRE PILATES BEWEGEN'],
-                description: 'Über 30.000 Studios ausgestattet und internationale Präsenz.<br/>Die Wahl für alle, die Referenz sein wollen.',
-                cta1: { text: 'Angebot Anfordern', link: buildWhatsAppLink('Hallo, ich habe Equipilates über die Website gefunden und möchte ein Angebot für die Erweiterung/Modernisierung meines Studios.') },
+                description: 'Uber 30.000 Studios ausgestattet und internationale Prasenz.<br/>Die Wahl fur alle, die Referenz sein wollen.',
+                cta1: { text: 'Angebot Anfordern', link: buildWhatsAppLink('Hallo, ich mochte ein Angebot fur Pilates-Gerate.') },
                 cta2: { text: 'Unsere Geschichte', link: '#manifesto' }
             },
             {
                 number: '02',
                 tag: 'KLASSISCHE LINIE',
-                title: ['TOTALE TREUE', 'ZUM VERMÄCHTNIS VON JOSEPH PILATES'],
-                description: 'Geräte streng nach Originalmaßen entwickelt.<br/>Der Goldstandard für die klassische Methode.',
+                title: ['TOTALE TREUE', 'ZUM VERMACHTNIS VON JOSEPH PILATES'],
+                description: 'Gerate streng nach Originalmassen entwickelt.<br/>Der Goldstandard fur die klassische Methode.',
                 cta1: { text: 'Klassische Linie Sehen', link: '#classic' },
-                cta2: { text: 'Mit Berater Sprechen', link: buildWhatsAppLink('Hallo, ich möchte die Klassische Linie (Originalmaße) für mein Studio verstehen. Können Sie mich beraten?') }
+                cta2: { text: 'Mit Berater Sprechen', link: buildWhatsAppLink('Hallo, ich mochte die Klassische Linie verstehen.') }
             },
             {
                 number: '03',
-                tag: 'GESCHÄFT & ROI',
-                title: ['VERWANDELN SIE IHREN TRAUM', 'IN EIN ERFOLGREICHES GESCHÄFT'],
-                description: 'Margen von bis zu 62,7% zeigen, dass Pilates rentabel sein kann<br/>mit den richtigen Partnern. Starten Sie jetzt.',
+                tag: 'GESCHAFT UND ROI',
+                title: ['VERWANDELN SIE IHREN TRAUM', 'IN EIN ERFOLGREICHES GESCHAFT'],
+                description: 'Margen von bis zu 62,7% zeigen, dass Pilates rentabel sein kann<br/>mit den richtigen Partnern.',
                 cta1: { text: 'Mein Studio Planen', link: '#wizard' },
-                cta2: { text: 'Zahlungsbedingungen Sehen', link: buildWhatsAppLink('Hallo, ich möchte die Zahlungs-/Finanzierungsmöglichkeiten für Pilates-Geräte sehen.') }
+                cta2: { text: 'Zahlungsbedingungen Sehen', link: buildWhatsAppLink('Hallo, ich mochte die Zahlungsmoglichkeiten sehen.') }
             },
             {
                 number: '04',
-                tag: 'INNOVATION & GARANTIE',
+                tag: 'INNOVATION UND GARANTIE',
                 title: ['EXZELLENZ UND INNOVATION', 'IN JEDER BEWEGUNG'],
                 description: 'Robustheit und fortschrittliches Design mit 2 Jahren Garantie.<br/>Bis zu 36 Raten direkt ab Werk.',
-                cta1: { text: 'Zeitgenössische Linie Sehen', link: '#contemporary' },
-                cta2: { text: 'Katalog Herunterladen', link: buildWhatsAppLink('Hallo! Ich möchte den Equipilates-Katalog erhalten (klassisch und zeitgenössisch).') }
+                cta1: { text: 'Moderne Linie Sehen', link: '#contemporary' },
+                cta2: { text: 'Katalog Herunterladen', link: buildWhatsAppLink('Hallo! Ich mochte den Equipilates-Katalog erhalten.') }
             }
         ]
     };
@@ -437,553 +548,8 @@ function initHeroSlider() {
         });
     }
 
-    // Minimal site-wide i18n for nav + wizard texts
-    const I18N = {
-        'pt-BR': {
-            'nav.home': 'Início',
-            'nav.manifesto': 'Manifesto',
-            'nav.classic': 'Clássica',
-            'nav.contemporary': 'Contemporânea',
-            'nav.contact': 'Contato',
-            'hero.trustLine': 'Desde 2006 • Fábrica em Resende-RJ • Presença em 15+ países',
-            'hero.scrollHint': 'Role para explorar',
-            'manifesto.kicker': 'EQUIPILATES',
-            'manifesto.title': 'Seu estúdio merece equipamentos que sustentam crescimento',
-            'manifesto.body': 'Quem já tem estúdio sabe: o "barato" vira manutenção, aula interrompida e aluno insatisfeito. A Equipilates existe para tirar esse risco do seu caminho — com fábrica própria, padrão de qualidade e um time comercial que ajuda você a decidir o upgrade certo.',
-            'manifesto.img1': 'Reformer Premium',
-            'manifesto.img2': 'Cadillac Pro',
-            'manifesto.img3': 'Wunda Chair',
-            'wizard.kicker': 'MONTE SEU UPGRADE',
-            'wizard.title': 'Em 2 minutos, descubra um kit recomendado para o seu espaço',
-            'wizard.subtitle': 'Responda 3 perguntas rápidas e receba uma sugestão inicial. Se fizer sentido, você fala com um consultor com tudo já resumido.',
-            'wizard.q1.label': 'Tamanho do seu espaço',
-            'wizard.q1.placeholder': 'Selecione uma faixa',
-            'wizard.q1.opt1': 'Até 25m²',
-            'wizard.q1.opt2': '25–40m²',
-            'wizard.q1.opt3': '40–70m²',
-            'wizard.q1.opt4': '70m²+',
-            'wizard.q2.label': 'Objetivo do upgrade',
-            'wizard.q2.placeholder': 'Selecione o objetivo',
-            'wizard.q2.opt1': 'Expandir capacidade (mais alunos/horários)',
-            'wizard.q2.opt2': 'Trocar equipamentos e reduzir manutenção',
-            'wizard.q2.opt3': 'Foco em reabilitação/fisioterapia',
-            'wizard.q2.opt4': 'Atualizar para linha contemporânea',
-            'wizard.q3.label': 'Equipamentos atuais (opcional)',
-            'wizard.q3.placeholder': 'Ex: Reformer + Cadillac (ou marca atual)',
-            'wizard.q3.hint': 'Se não souber, tudo bem — escreva "não sei".',
-            'wizard.primaryCta': 'Ver recomendação e falar no WhatsApp',
-            'wizard.secondaryCta': 'Prefiro receber por e-mail',
-            'wizard.trust': 'Dica: estúdios bem geridos podem alcançar margens de lucro de até 62,7%. Vamos te ajudar a planejar o upgrade certo.',
-            'wizard.lead.name': 'Nome',
-            'wizard.lead.namePh': 'Seu nome',
-            'wizard.lead.email': 'E-mail',
-            'wizard.lead.emailPh': 'voce@exemplo.com',
-            'wizard.lead.send': 'Enviar para o time',
-            'wizard.lead.note': 'Abrirá seu cliente de e-mail com a mensagem pronta.',
-            // Why Section
-            'why.kicker': 'NOSSOS DIFERENCIAIS',
-            'why.title': 'Por que escolher EquiPilates',
-            'why.b1.title': 'Qualidade Superior',
-            'why.b1.desc': 'Materiais premium selecionados e processos de fabricação rigorosos garantem equipamentos que duram décadas.',
-            'why.b2.title': 'Design Exclusivo',
-            'why.b2.desc': 'Estética sofisticada que valoriza seu studio e impressiona seus alunos desde o primeiro contato.',
-            'why.b3.title': 'Ergonomia Perfeita',
-            'why.b3.desc': 'Desenvolvidos com fisioterapeutas para proporcionar a melhor experiência e resultados em cada movimento.',
-            'why.b4.title': 'Suporte Total',
-            'why.b4.desc': 'Equipe especializada em todo Brasil para instalação, manutenção e treinamento da sua equipe.',
-            'why.b5.title': 'Garantia Estendida',
-            'why.b5.desc': '2 anos de garantia que demonstram nossa confiança absoluta na qualidade de cada equipamento.',
-            'why.b6.title': 'Personalização',
-            'why.b6.desc': 'Cores, acabamentos e configurações exclusivas para criar a identidade única do seu studio.',
-            // Classic Section
-            'classic.kicker': 'LINHA CLÁSSICA',
-            'classic.title': 'Tradição reinventada com excelência contemporânea',
-            'classic.body': 'A essência do método Joseph Pilates preservada em cada detalhe. Madeira nobre certificada, aço inox cirúrgico e artesanato excepcional se encontram para criar equipamentos atemporais que honram a tradição enquanto abraçam a modernidade.',
-            'classic.p1.title': 'Reformer Premium',
-            'classic.p1.desc': 'Design atemporal com performance moderna. Madeira nobre e ajustes suaves para uma experiência excepcional.',
-            'classic.p2.title': 'Cadillac Pro',
-            'classic.p2.desc': 'Versatilidade absoluta com estrutura robusta. Perfeita para todos os níveis de praticantes.',
-            'classic.p3.title': 'Wunda Chair',
-            'classic.p3.desc': 'Compacta sem comprometer funcionalidade. Ideal para studios com limitação de espaço.',
-            'classic.p4.title': 'Barrel Arc',
-            'classic.p4.desc': 'Curvatura perfeita para alongamento profundo da coluna vertebral com máximo conforto.',
-            'classic.p5.title': 'Ladder Barrel',
-            'classic.p5.desc': 'Flexibilidade e força em um único equipamento versátil e elegante.',
-            'classic.p6.title': 'Mat Premium',
-            'classic.p6.desc': 'Base essencial com materiais superiores e design ergonômico exclusivo.',
-            // Contemporary Section
-            'contemporary.kicker': 'LINHA CONTEMPORÂNEA',
-            'contemporary.title': 'Inovação que redefine padrões de qualidade',
-            'contemporary.body': 'Design visionário que desafia convenções. Tecnologia inteligente, materiais aeroespaciais e estética minimalista convergem para criar a próxima geração de equipamentos de Pilates.',
-            'contemporary.f1.title': 'Sistema Digital Integrado',
-            'contemporary.f1.desc': 'Interface touch intuitiva com ajustes precisos e feedback em tempo real para otimizar cada movimento.',
-            'contemporary.f2.title': 'Materiais Aeroespaciais',
-            'contemporary.f2.desc': 'Polímeros de alta performance e liga de alumínio aeronáutico garantem leveza e resistência superior.',
-            'contemporary.f3.title': 'Design Modular Inteligente',
-            'contemporary.f3.desc': 'Personalização infinita com módulos intercambiáveis que se adaptam às necessidades do seu studio.',
-            'contemporary.f4.title': 'Conectividade Smart',
-            'contemporary.f4.desc': 'App dedicado para tracking completo de treinos, manutenção preventiva e análise de performance.',
-            // Gallery Section
-            'gallery.kicker': 'NOSSOS PROJETOS',
-            'gallery.title': 'Studios que confiam na nossa qualidade',
-            'gallery.g1.title': 'Studio Premium',
-            'gallery.g1.loc': 'São Paulo, SP',
-            'gallery.g2.title': 'Centro Wellness',
-            'gallery.g2.loc': 'Rio de Janeiro, RJ',
-            'gallery.g3.title': 'Boutique Pilates',
-            'gallery.g3.loc': 'Belo Horizonte, MG',
-            'gallery.g4.title': 'Academia Gold',
-            'gallery.g4.loc': 'Porto Alegre, RS',
-            'gallery.g5.title': 'Clínica Move',
-            'gallery.g5.loc': 'Florianópolis, SC',
-            'gallery.g6.title': 'Studio Exclusive',
-            'gallery.g6.loc': 'Curitiba, PR',
-            // Stats Section
-            'stats.s1': 'Studios equipados em 3 continentes',
-            'stats.s2': 'Mil vidas transformadas diariamente',
-            'stats.s3': '% taxa de recomendação',
-            // Testimonials Section
-            'testimonials.kicker': 'DEPOIMENTOS',
-            'testimonials.title': 'O que nossos clientes têm a dizer',
-            'testimonials.t1.quote': '"Os equipamentos da EquiPilates elevaram meu studio a outro nível. Design deslumbrante e qualidade incomparável."',
-            'testimonials.t1.name': 'Mariana Silva',
-            'testimonials.t1.role': 'Studio Equilíbrio, São Paulo',
-            'testimonials.t2.quote': '"Investimento que transformou nosso centro. A durabilidade e precisão são excepcionais. Simplesmente perfeito."',
-            'testimonials.t2.name': 'Carlos Mendes',
-            'testimonials.t2.role': 'Centro Reabilitação, Rio de Janeiro',
-            'testimonials.t3.quote': '"Design sofisticado e funcionalidade impecável. Cada detalhe pensado com maestria. Recomendo sem hesitar."',
-            'testimonials.t3.name': 'Ana Paula Costa',
-            'testimonials.t3.role': 'Studio Harmonia, Belo Horizonte',
-            // Contact Section
-            'contact.kicker': 'FALE CONOSCO',
-            'contact.title': 'Pronto para planejar o próximo passo do seu estúdio?',
-            'contact.body': 'Fale com um consultor e receba orientação para escolher linha, kit e layout ideal para o seu espaço.',
-            'contact.addrTitle': 'Endereço',
-            'contact.emailTitle': 'Email',
-            'contact.phoneTitle': 'WhatsApp',
-            'contact.phoneHint': 'Atendimento comercial',
-            'contact.primaryCta': 'Falar no WhatsApp',
-            'contact.secondaryCta': 'Ou preencha o Wizard acima e envie tudo já organizado.',
-            // Footer
-            'footer.tagline': 'Excelência em equipamentos de pilates desde 2006',
-            'footer.products': 'Produtos',
-            'footer.classicLink': 'Linha Clássica',
-            'footer.contemporaryLink': 'Linha Contemporânea',
-            'footer.company': 'Empresa',
-            'footer.about': 'Sobre Nós',
-            'footer.contactLink': 'Contato',
-            'footer.social': 'Redes Sociais',
-            'footer.copyright': '© 2024 EquiPilates. Todos os direitos reservados.'
-        },
-        'en': {
-            'nav.home': 'Home',
-            'nav.manifesto': 'Manifesto',
-            'nav.classic': 'Classic',
-            'nav.contemporary': 'Contemporary',
-            'nav.contact': 'Contact',
-            'hero.trustLine': 'Since 2006 • Factory in Resende-RJ • Present in 15+ countries',
-            'hero.scrollHint': 'Scroll to explore',
-            'manifesto.kicker': 'EQUIPILATES',
-            'manifesto.title': 'Your studio deserves equipment that supports growth',
-            'manifesto.body': 'If you run a studio, you know: "cheap" becomes maintenance, interrupted sessions and unhappy clients. Equipilates exists to remove that risk — with our own factory, quality standards and a sales team that helps you choose the right upgrade.',
-            'manifesto.img1': 'Premium Reformer',
-            'manifesto.img2': 'Cadillac Pro',
-            'manifesto.img3': 'Wunda Chair',
-            'wizard.kicker': 'BUILD YOUR UPGRADE',
-            'wizard.title': 'In 2 minutes, get a recommended kit for your space',
-            'wizard.subtitle': 'Answer 3 quick questions and get an initial suggestion. If it fits, talk to a consultant with everything summarized.',
-            'wizard.q1.label': 'Your space size',
-            'wizard.q1.placeholder': 'Select a range',
-            'wizard.q1.opt1': 'Up to 25m²',
-            'wizard.q1.opt2': '25–40m²',
-            'wizard.q1.opt3': '40–70m²',
-            'wizard.q1.opt4': '70m²+',
-            'wizard.q2.label': 'Upgrade goal',
-            'wizard.q2.placeholder': 'Select a goal',
-            'wizard.q2.opt1': 'Increase capacity (more clients/schedule)',
-            'wizard.q2.opt2': 'Replace equipment and reduce maintenance',
-            'wizard.q2.opt3': 'Rehab/physio focus',
-            'wizard.q2.opt4': 'Move to contemporary line',
-            'wizard.q3.label': 'Current equipment (optional)',
-            'wizard.q3.placeholder': 'Ex: Reformer + Cadillac (or current brand)',
-            'wizard.q3.hint': "If you don't know, it's ok — type \"not sure\".",
-            'wizard.primaryCta': 'See recommendation & WhatsApp',
-            'wizard.secondaryCta': 'Send by email',
-            'wizard.trust': "Tip: well-managed studios can reach up to 62.7% margins. We'll help you plan the right upgrade.",
-            'wizard.lead.name': 'Name',
-            'wizard.lead.namePh': 'Your name',
-            'wizard.lead.email': 'Email',
-            'wizard.lead.emailPh': 'you@example.com',
-            'wizard.lead.send': 'Send to the team',
-            'wizard.lead.note': 'Opens your email client with the message ready.',
-            // Why Section
-            'why.kicker': 'OUR DIFFERENTIALS',
-            'why.title': 'Why choose EquiPilates',
-            'why.b1.title': 'Superior Quality',
-            'why.b1.desc': 'Premium selected materials and rigorous manufacturing processes ensure equipment that lasts decades.',
-            'why.b2.title': 'Exclusive Design',
-            'why.b2.desc': 'Sophisticated aesthetics that add value to your studio and impress your clients from day one.',
-            'why.b3.title': 'Perfect Ergonomics',
-            'why.b3.desc': 'Developed with physiotherapists to provide the best experience and results in every movement.',
-            'why.b4.title': 'Full Support',
-            'why.b4.desc': 'Specialized team throughout Brazil for installation, maintenance and training of your staff.',
-            'why.b5.title': 'Extended Warranty',
-            'why.b5.desc': '2-year warranty that demonstrates our absolute confidence in the quality of each equipment.',
-            'why.b6.title': 'Customization',
-            'why.b6.desc': 'Exclusive colors, finishes and configurations to create the unique identity of your studio.',
-            // Classic Section
-            'classic.kicker': 'CLASSIC LINE',
-            'classic.title': 'Tradition reinvented with contemporary excellence',
-            'classic.body': 'The essence of the Joseph Pilates method preserved in every detail. Certified noble wood, surgical stainless steel and exceptional craftsmanship come together to create timeless equipment that honors tradition while embracing modernity.',
-            'classic.p1.title': 'Premium Reformer',
-            'classic.p1.desc': 'Timeless design with modern performance. Noble wood and smooth adjustments for an exceptional experience.',
-            'classic.p2.title': 'Cadillac Pro',
-            'classic.p2.desc': 'Absolute versatility with robust structure. Perfect for all practitioner levels.',
-            'classic.p3.title': 'Wunda Chair',
-            'classic.p3.desc': 'Compact without compromising functionality. Ideal for studios with limited space.',
-            'classic.p4.title': 'Barrel Arc',
-            'classic.p4.desc': 'Perfect curvature for deep spinal stretching with maximum comfort.',
-            'classic.p5.title': 'Ladder Barrel',
-            'classic.p5.desc': 'Flexibility and strength in a single versatile and elegant equipment.',
-            'classic.p6.title': 'Premium Mat',
-            'classic.p6.desc': 'Essential base with superior materials and exclusive ergonomic design.',
-            // Contemporary Section
-            'contemporary.kicker': 'CONTEMPORARY LINE',
-            'contemporary.title': 'Innovation that redefines quality standards',
-            'contemporary.body': 'Visionary design that challenges conventions. Smart technology, aerospace materials and minimalist aesthetics converge to create the next generation of Pilates equipment.',
-            'contemporary.f1.title': 'Integrated Digital System',
-            'contemporary.f1.desc': 'Intuitive touch interface with precise adjustments and real-time feedback to optimize each movement.',
-            'contemporary.f2.title': 'Aerospace Materials',
-            'contemporary.f2.desc': 'High-performance polymers and aerospace aluminum alloy ensure lightness and superior resistance.',
-            'contemporary.f3.title': 'Intelligent Modular Design',
-            'contemporary.f3.desc': 'Infinite customization with interchangeable modules that adapt to your studio needs.',
-            'contemporary.f4.title': 'Smart Connectivity',
-            'contemporary.f4.desc': 'Dedicated app for complete workout tracking, preventive maintenance and performance analysis.',
-            // Gallery Section
-            'gallery.kicker': 'OUR PROJECTS',
-            'gallery.title': 'Studios that trust our quality',
-            'gallery.g1.title': 'Premium Studio',
-            'gallery.g1.loc': 'São Paulo, SP',
-            'gallery.g2.title': 'Wellness Center',
-            'gallery.g2.loc': 'Rio de Janeiro, RJ',
-            'gallery.g3.title': 'Boutique Pilates',
-            'gallery.g3.loc': 'Belo Horizonte, MG',
-            'gallery.g4.title': 'Gold Academy',
-            'gallery.g4.loc': 'Porto Alegre, RS',
-            'gallery.g5.title': 'Move Clinic',
-            'gallery.g5.loc': 'Florianópolis, SC',
-            'gallery.g6.title': 'Exclusive Studio',
-            'gallery.g6.loc': 'Curitiba, PR',
-            // Stats Section
-            'stats.s1': 'Studios equipped on 3 continents',
-            'stats.s2': 'Thousand lives transformed daily',
-            'stats.s3': '% recommendation rate',
-            // Testimonials Section
-            'testimonials.kicker': 'TESTIMONIALS',
-            'testimonials.title': 'What our clients have to say',
-            'testimonials.t1.quote': '"EquiPilates equipment elevated my studio to another level. Stunning design and unparalleled quality."',
-            'testimonials.t1.name': 'Mariana Silva',
-            'testimonials.t1.role': 'Studio Equilíbrio, São Paulo',
-            'testimonials.t2.quote': '"Investment that transformed our center. Durability and precision are exceptional. Simply perfect."',
-            'testimonials.t2.name': 'Carlos Mendes',
-            'testimonials.t2.role': 'Rehabilitation Center, Rio de Janeiro',
-            'testimonials.t3.quote': '"Sophisticated design and impeccable functionality. Every detail crafted with mastery. I recommend without hesitation."',
-            'testimonials.t3.name': 'Ana Paula Costa',
-            'testimonials.t3.role': 'Studio Harmonia, Belo Horizonte',
-            // Contact Section
-            'contact.kicker': 'CONTACT',
-            'contact.title': "Ready to plan your studio's next step?",
-            'contact.body': 'Talk to a consultant and get guidance on line, kit and layout for your space.',
-            'contact.addrTitle': 'Address',
-            'contact.emailTitle': 'Email',
-            'contact.phoneTitle': 'WhatsApp',
-            'contact.phoneHint': 'Sales team',
-            'contact.primaryCta': 'Chat on WhatsApp',
-            'contact.secondaryCta': 'Or use the Wizard above and send everything organized.',
-            // Footer
-            'footer.tagline': 'Excellence in Pilates equipment since 2006',
-            'footer.products': 'Products',
-            'footer.classicLink': 'Classic Line',
-            'footer.contemporaryLink': 'Contemporary Line',
-            'footer.company': 'Company',
-            'footer.about': 'About Us',
-            'footer.contactLink': 'Contact',
-            'footer.social': 'Social Media',
-            'footer.copyright': '© 2024 EquiPilates. All rights reserved.'
-        },
-        'es': {
-            'nav.home': 'Inicio',
-            'nav.manifesto': 'Manifiesto',
-            'nav.classic': 'Clásica',
-            'nav.contemporary': 'Contemporánea',
-            'nav.contact': 'Contacto',
-            'hero.trustLine': 'Desde 2006 • Fábrica en Resende-RJ • Presencia en 15+ países',
-            'hero.scrollHint': 'Desplaza para explorar',
-            'manifesto.kicker': 'EQUIPILATES',
-            'manifesto.title': 'Tu estudio merece equipos que sostienen el crecimiento',
-            'manifesto.body': 'Si ya tienes estudio, lo sabes: lo "barato" se convierte en mantenimiento, clases interrumpidas y clientes insatisfechos. Equipilates existe para quitar ese riesgo — con fábrica propia, estándar de calidad y un equipo comercial que te ayuda a elegir el upgrade correcto.',
-            'manifesto.img1': 'Reformer Premium',
-            'manifesto.img2': 'Cadillac Pro',
-            'manifesto.img3': 'Wunda Chair',
-            'wizard.kicker': 'ARMA TU UPGRADE',
-            'wizard.title': 'En 2 minutos, recibe un kit recomendado para tu espacio',
-            'wizard.subtitle': 'Responde 3 preguntas rápidas y recibe una sugerencia inicial. Si encaja, habla con un asesor con todo resumido.',
-            'wizard.q1.label': 'Tamaño del espacio',
-            'wizard.q1.placeholder': 'Selecciona un rango',
-            'wizard.q1.opt1': 'Hasta 25m²',
-            'wizard.q1.opt2': '25–40m²',
-            'wizard.q1.opt3': '40–70m²',
-            'wizard.q1.opt4': '70m²+',
-            'wizard.q2.label': 'Objetivo del upgrade',
-            'wizard.q2.placeholder': 'Selecciona un objetivo',
-            'wizard.q2.opt1': 'Aumentar capacidad (más clientes/horarios)',
-            'wizard.q2.opt2': 'Reemplazar equipos y reducir mantenimiento',
-            'wizard.q2.opt3': 'Enfoque en rehabilitación/fisio',
-            'wizard.q2.opt4': 'Pasar a línea contemporánea',
-            'wizard.q3.label': 'Equipos actuales (opcional)',
-            'wizard.q3.placeholder': 'Ej: Reformer + Cadillac (o marca actual)',
-            'wizard.q3.hint': 'Si no sabes, está bien — escribe "no sé".',
-            'wizard.primaryCta': 'Ver recomendación y WhatsApp',
-            'wizard.secondaryCta': 'Enviar por email',
-            'wizard.trust': 'Tip: estudios bien gestionados pueden llegar hasta 62,7% de margen. Te ayudamos a planificar el upgrade correcto.',
-            'wizard.lead.name': 'Nombre',
-            'wizard.lead.namePh': 'Tu nombre',
-            'wizard.lead.email': 'Email',
-            'wizard.lead.emailPh': 'tu@ejemplo.com',
-            'wizard.lead.send': 'Enviar al equipo',
-            'wizard.lead.note': 'Abre tu cliente de correo con el mensaje listo.',
-            // Why Section
-            'why.kicker': 'NUESTROS DIFERENCIALES',
-            'why.title': 'Por qué elegir EquiPilates',
-            'why.b1.title': 'Calidad Superior',
-            'why.b1.desc': 'Materiales premium seleccionados y procesos de fabricación rigurosos garantizan equipos que duran décadas.',
-            'why.b2.title': 'Diseño Exclusivo',
-            'why.b2.desc': 'Estética sofisticada que valoriza tu estudio e impresiona a tus alumnos desde el primer contacto.',
-            'why.b3.title': 'Ergonomía Perfecta',
-            'why.b3.desc': 'Desarrollados con fisioterapeutas para proporcionar la mejor experiencia y resultados en cada movimiento.',
-            'why.b4.title': 'Soporte Total',
-            'why.b4.desc': 'Equipo especializado en todo Brasil para instalación, mantenimiento y capacitación de tu equipo.',
-            'why.b5.title': 'Garantía Extendida',
-            'why.b5.desc': '2 años de garantía que demuestran nuestra confianza absoluta en la calidad de cada equipo.',
-            'why.b6.title': 'Personalización',
-            'why.b6.desc': 'Colores, acabados y configuraciones exclusivas para crear la identidad única de tu estudio.',
-            // Classic Section
-            'classic.kicker': 'LÍNEA CLÁSICA',
-            'classic.title': 'Tradición reinventada con excelencia contemporánea',
-            'classic.body': 'La esencia del método Joseph Pilates preservada en cada detalle. Madera noble certificada, acero inoxidable quirúrgico y artesanía excepcional se encuentran para crear equipos atemporales que honran la tradición mientras abrazan la modernidad.',
-            'classic.p1.title': 'Reformer Premium',
-            'classic.p1.desc': 'Diseño atemporal con rendimiento moderno. Madera noble y ajustes suaves para una experiencia excepcional.',
-            'classic.p2.title': 'Cadillac Pro',
-            'classic.p2.desc': 'Versatilidad absoluta con estructura robusta. Perfecta para todos los niveles de practicantes.',
-            'classic.p3.title': 'Wunda Chair',
-            'classic.p3.desc': 'Compacta sin comprometer funcionalidad. Ideal para estudios con limitación de espacio.',
-            'classic.p4.title': 'Barrel Arc',
-            'classic.p4.desc': 'Curvatura perfecta para estiramiento profundo de la columna vertebral con máximo confort.',
-            'classic.p5.title': 'Ladder Barrel',
-            'classic.p5.desc': 'Flexibilidad y fuerza en un único equipo versátil y elegante.',
-            'classic.p6.title': 'Mat Premium',
-            'classic.p6.desc': 'Base esencial con materiales superiores y diseño ergonómico exclusivo.',
-            // Contemporary Section
-            'contemporary.kicker': 'LÍNEA CONTEMPORÁNEA',
-            'contemporary.title': 'Innovación que redefine estándares de calidad',
-            'contemporary.body': 'Diseño visionario que desafía convenciones. Tecnología inteligente, materiales aeroespaciales y estética minimalista convergen para crear la próxima generación de equipos de Pilates.',
-            'contemporary.f1.title': 'Sistema Digital Integrado',
-            'contemporary.f1.desc': 'Interfaz táctil intuitiva con ajustes precisos y feedback en tiempo real para optimizar cada movimiento.',
-            'contemporary.f2.title': 'Materiales Aeroespaciales',
-            'contemporary.f2.desc': 'Polímeros de alto rendimiento y aleación de aluminio aeronáutico garantizan ligereza y resistencia superior.',
-            'contemporary.f3.title': 'Diseño Modular Inteligente',
-            'contemporary.f3.desc': 'Personalización infinita con módulos intercambiables que se adaptan a las necesidades de tu estudio.',
-            'contemporary.f4.title': 'Conectividad Smart',
-            'contemporary.f4.desc': 'App dedicada para tracking completo de entrenamientos, mantenimiento preventivo y análisis de rendimiento.',
-            // Gallery Section
-            'gallery.kicker': 'NUESTROS PROYECTOS',
-            'gallery.title': 'Estudios que confían en nuestra calidad',
-            'gallery.g1.title': 'Studio Premium',
-            'gallery.g1.loc': 'São Paulo, SP',
-            'gallery.g2.title': 'Centro Wellness',
-            'gallery.g2.loc': 'Río de Janeiro, RJ',
-            'gallery.g3.title': 'Boutique Pilates',
-            'gallery.g3.loc': 'Belo Horizonte, MG',
-            'gallery.g4.title': 'Academia Gold',
-            'gallery.g4.loc': 'Porto Alegre, RS',
-            'gallery.g5.title': 'Clínica Move',
-            'gallery.g5.loc': 'Florianópolis, SC',
-            'gallery.g6.title': 'Studio Exclusive',
-            'gallery.g6.loc': 'Curitiba, PR',
-            // Stats Section
-            'stats.s1': 'Estudios equipados en 3 continentes',
-            'stats.s2': 'Mil vidas transformadas diariamente',
-            'stats.s3': '% tasa de recomendación',
-            // Testimonials Section
-            'testimonials.kicker': 'TESTIMONIOS',
-            'testimonials.title': 'Lo que dicen nuestros clientes',
-            'testimonials.t1.quote': '"Los equipos de EquiPilates elevaron mi estudio a otro nivel. Diseño deslumbrante y calidad incomparable."',
-            'testimonials.t1.name': 'Mariana Silva',
-            'testimonials.t1.role': 'Studio Equilíbrio, São Paulo',
-            'testimonials.t2.quote': '"Inversión que transformó nuestro centro. La durabilidad y precisión son excepcionales. Simplemente perfecto."',
-            'testimonials.t2.name': 'Carlos Mendes',
-            'testimonials.t2.role': 'Centro Rehabilitación, Río de Janeiro',
-            'testimonials.t3.quote': '"Diseño sofisticado y funcionalidad impecable. Cada detalle pensado con maestría. Recomiendo sin dudar."',
-            'testimonials.t3.name': 'Ana Paula Costa',
-            'testimonials.t3.role': 'Studio Harmonia, Belo Horizonte',
-            // Contact Section
-            'contact.kicker': 'CONTACTO',
-            'contact.title': '¿Listo para planificar el próximo paso de tu estudio?',
-            'contact.body': 'Habla con un asesor y recibe orientación sobre línea, kit y layout para tu espacio.',
-            'contact.addrTitle': 'Dirección',
-            'contact.emailTitle': 'Email',
-            'contact.phoneTitle': 'WhatsApp',
-            'contact.phoneHint': 'Equipo comercial',
-            'contact.primaryCta': 'Hablar por WhatsApp',
-            'contact.secondaryCta': 'O usa el Wizard arriba y envía todo organizado.',
-            // Footer
-            'footer.tagline': 'Excelencia en equipos de pilates desde 2006',
-            'footer.products': 'Productos',
-            'footer.classicLink': 'Línea Clásica',
-            'footer.contemporaryLink': 'Línea Contemporánea',
-            'footer.company': 'Empresa',
-            'footer.about': 'Sobre Nosotros',
-            'footer.contactLink': 'Contacto',
-            'footer.social': 'Redes Sociales',
-            'footer.copyright': '© 2024 EquiPilates. Todos los derechos reservados.'
-        },
-        'de': {
-            'nav.home': 'Start',
-            'nav.manifesto': 'Manifest',
-            'nav.classic': 'Klassisch',
-            'nav.contemporary': 'Zeitgenössisch',
-            'nav.contact': 'Kontakt',
-            'hero.trustLine': 'Seit 2006 • Fabrik in Resende-RJ • Präsenz in 15+ Ländern',
-            'hero.scrollHint': 'Scrollen zum Erkunden',
-            'manifesto.kicker': 'EQUIPILATES',
-            'manifesto.title': 'Ihr Studio verdient Geräte, die Wachstum unterstützen',
-            'manifesto.body': 'Wer ein Studio betreibt, weiß: "Billig" wird zu Wartung, unterbrochenen Stunden und unzufriedenen Kunden. Equipilates gibt es, um dieses Risiko zu beseitigen — mit eigener Fabrik, Qualitätsstandards und einem Vertriebsteam, das Ihnen bei der richtigen Auswahl hilft.',
-            'manifesto.img1': 'Premium Reformer',
-            'manifesto.img2': 'Cadillac Pro',
-            'manifesto.img3': 'Wunda Chair',
-            'wizard.kicker': 'PLANEN SIE IHR UPGRADE',
-            'wizard.title': 'In 2 Minuten ein empfohlenes Kit für Ihren Raum erhalten',
-            'wizard.subtitle': 'Beantworten Sie 3 kurze Fragen und erhalten Sie einen ersten Vorschlag. Wenn es passt, sprechen Sie mit einem Berater.',
-            'wizard.q1.label': 'Raumgröße',
-            'wizard.q1.placeholder': 'Bereich auswählen',
-            'wizard.q1.opt1': 'Bis 25m²',
-            'wizard.q1.opt2': '25–40m²',
-            'wizard.q1.opt3': '40–70m²',
-            'wizard.q1.opt4': '70m²+',
-            'wizard.q2.label': 'Upgrade-Ziel',
-            'wizard.q2.placeholder': 'Ziel auswählen',
-            'wizard.q2.opt1': 'Kapazität erhöhen (mehr Kunden/Termine)',
-            'wizard.q2.opt2': 'Geräte ersetzen und Wartung reduzieren',
-            'wizard.q2.opt3': 'Fokus auf Rehabilitation/Physio',
-            'wizard.q2.opt4': 'Auf zeitgenössische Linie umsteigen',
-            'wizard.q3.label': 'Aktuelle Geräte (optional)',
-            'wizard.q3.placeholder': 'Z.B.: Reformer + Cadillac (oder aktuelle Marke)',
-            'wizard.q3.hint': 'Wenn Sie es nicht wissen, kein Problem — schreiben Sie "weiß nicht".',
-            'wizard.primaryCta': 'Empfehlung sehen & WhatsApp',
-            'wizard.secondaryCta': 'Per E-Mail senden',
-            'wizard.trust': 'Tipp: Gut geführte Studios können Margen von bis zu 62,7% erreichen. Wir helfen Ihnen, das richtige Upgrade zu planen.',
-            'wizard.lead.name': 'Name',
-            'wizard.lead.namePh': 'Ihr Name',
-            'wizard.lead.email': 'E-Mail',
-            'wizard.lead.emailPh': 'sie@beispiel.com',
-            'wizard.lead.send': 'An das Team senden',
-            'wizard.lead.note': 'Öffnet Ihr E-Mail-Programm mit der fertigen Nachricht.',
-            // Why Section
-            'why.kicker': 'UNSERE UNTERSCHIEDE',
-            'why.title': 'Warum EquiPilates wählen',
-            'why.b1.title': 'Überlegene Qualität',
-            'why.b1.desc': 'Premium ausgewählte Materialien und strenge Herstellungsprozesse garantieren Geräte, die Jahrzehnte halten.',
-            'why.b2.title': 'Exklusives Design',
-            'why.b2.desc': 'Anspruchsvolle Ästhetik, die Ihr Studio aufwertet und Ihre Kunden vom ersten Kontakt an beeindruckt.',
-            'why.b3.title': 'Perfekte Ergonomie',
-            'why.b3.desc': 'Mit Physiotherapeuten entwickelt, um die beste Erfahrung und Ergebnisse bei jeder Bewegung zu bieten.',
-            'why.b4.title': 'Voller Support',
-            'why.b4.desc': 'Spezialisiertes Team in ganz Brasilien für Installation, Wartung und Schulung Ihres Teams.',
-            'why.b5.title': 'Erweiterte Garantie',
-            'why.b5.desc': '2 Jahre Garantie, die unser absolutes Vertrauen in die Qualität jedes Geräts zeigt.',
-            'why.b6.title': 'Personalisierung',
-            'why.b6.desc': 'Exklusive Farben, Oberflächen und Konfigurationen, um die einzigartige Identität Ihres Studios zu schaffen.',
-            // Classic Section
-            'classic.kicker': 'KLASSISCHE LINIE',
-            'classic.title': 'Tradition neu erfunden mit zeitgenössischer Exzellenz',
-            'classic.body': 'Die Essenz der Joseph Pilates Methode in jedem Detail bewahrt. Zertifiziertes Edelholz, chirurgischer Edelstahl und außergewöhnliche Handwerkskunst vereinen sich zu zeitlosen Geräten, die Tradition ehren und Modernität umarmen.',
-            'classic.p1.title': 'Premium Reformer',
-            'classic.p1.desc': 'Zeitloses Design mit moderner Leistung. Edelholz und sanfte Einstellungen für ein außergewöhnliches Erlebnis.',
-            'classic.p2.title': 'Cadillac Pro',
-            'classic.p2.desc': 'Absolute Vielseitigkeit mit robuster Struktur. Perfekt für alle Übungsniveaus.',
-            'classic.p3.title': 'Wunda Chair',
-            'classic.p3.desc': 'Kompakt ohne Kompromisse bei der Funktionalität. Ideal für Studios mit begrenztem Platz.',
-            'classic.p4.title': 'Barrel Arc',
-            'classic.p4.desc': 'Perfekte Krümmung für tiefe Wirbelsäulendehnung mit maximalem Komfort.',
-            'classic.p5.title': 'Ladder Barrel',
-            'classic.p5.desc': 'Flexibilität und Stärke in einem einzigen vielseitigen und eleganten Gerät.',
-            'classic.p6.title': 'Premium Mat',
-            'classic.p6.desc': 'Essentielle Basis mit überlegenen Materialien und exklusivem ergonomischem Design.',
-            // Contemporary Section
-            'contemporary.kicker': 'ZEITGENÖSSISCHE LINIE',
-            'contemporary.title': 'Innovation, die Qualitätsstandards neu definiert',
-            'contemporary.body': 'Visionäres Design, das Konventionen herausfordert. Intelligente Technologie, Aerospace-Materialien und minimalistische Ästhetik vereinen sich zur nächsten Generation von Pilates-Geräten.',
-            'contemporary.f1.title': 'Integriertes Digitalsystem',
-            'contemporary.f1.desc': 'Intuitive Touch-Oberfläche mit präzisen Einstellungen und Echtzeit-Feedback zur Optimierung jeder Bewegung.',
-            'contemporary.f2.title': 'Aerospace-Materialien',
-            'contemporary.f2.desc': 'Hochleistungspolymere und Luftfahrt-Aluminiumlegierung garantieren Leichtigkeit und überlegene Beständigkeit.',
-            'contemporary.f3.title': 'Intelligentes Modulares Design',
-            'contemporary.f3.desc': 'Unendliche Anpassung mit austauschbaren Modulen, die sich an Ihre Studiobedürfnisse anpassen.',
-            'contemporary.f4.title': 'Smart Connectivity',
-            'contemporary.f4.desc': 'Dedizierte App für komplettes Training-Tracking, vorbeugende Wartung und Leistungsanalyse.',
-            // Gallery Section
-            'gallery.kicker': 'UNSERE PROJEKTE',
-            'gallery.title': 'Studios, die unserer Qualität vertrauen',
-            'gallery.g1.title': 'Premium Studio',
-            'gallery.g1.loc': 'São Paulo, SP',
-            'gallery.g2.title': 'Wellness Center',
-            'gallery.g2.loc': 'Rio de Janeiro, RJ',
-            'gallery.g3.title': 'Boutique Pilates',
-            'gallery.g3.loc': 'Belo Horizonte, MG',
-            'gallery.g4.title': 'Gold Academy',
-            'gallery.g4.loc': 'Porto Alegre, RS',
-            'gallery.g5.title': 'Move Klinik',
-            'gallery.g5.loc': 'Florianópolis, SC',
-            'gallery.g6.title': 'Exclusive Studio',
-            'gallery.g6.loc': 'Curitiba, PR',
-            // Stats Section
-            'stats.s1': 'Studios auf 3 Kontinenten ausgestattet',
-            'stats.s2': 'Tausend Leben täglich transformiert',
-            'stats.s3': '% Empfehlungsrate',
-            // Testimonials Section
-            'testimonials.kicker': 'TESTIMONIALS',
-            'testimonials.title': 'Was unsere Kunden sagen',
-            'testimonials.t1.quote': '"Die EquiPilates-Geräte haben mein Studio auf ein anderes Niveau gehoben. Atemberaubendes Design und unvergleichliche Qualität."',
-            'testimonials.t1.name': 'Mariana Silva',
-            'testimonials.t1.role': 'Studio Equilíbrio, São Paulo',
-            'testimonials.t2.quote': '"Investition, die unser Zentrum transformiert hat. Haltbarkeit und Präzision sind außergewöhnlich. Einfach perfekt."',
-            'testimonials.t2.name': 'Carlos Mendes',
-            'testimonials.t2.role': 'Rehabilitationszentrum, Rio de Janeiro',
-            'testimonials.t3.quote': '"Anspruchsvolles Design und tadellose Funktionalität. Jedes Detail mit Meisterschaft durchdacht. Ich empfehle ohne zu zögern."',
-            'testimonials.t3.name': 'Ana Paula Costa',
-            'testimonials.t3.role': 'Studio Harmonia, Belo Horizonte',
-            // Contact Section
-            'contact.kicker': 'KONTAKT',
-            'contact.title': 'Bereit, den nächsten Schritt für Ihr Studio zu planen?',
-            'contact.body': 'Sprechen Sie mit einem Berater und erhalten Sie Beratung zu Linie, Kit und Layout für Ihren Raum.',
-            'contact.addrTitle': 'Adresse',
-            'contact.emailTitle': 'E-Mail',
-            'contact.phoneTitle': 'WhatsApp',
-            'contact.phoneHint': 'Vertriebsteam',
-            'contact.primaryCta': 'Auf WhatsApp chatten',
-            'contact.secondaryCta': 'Oder nutzen Sie den Wizard oben und senden Sie alles organisiert.',
-            // Footer
-            'footer.tagline': 'Exzellenz in Pilates-Geräten seit 2006',
-            'footer.products': 'Produkte',
-            'footer.classicLink': 'Klassische Linie',
-            'footer.contemporaryLink': 'Zeitgenössische Linie',
-            'footer.company': 'Unternehmen',
-            'footer.about': 'Über Uns',
-            'footer.contactLink': 'Kontakt',
-            'footer.social': 'Soziale Medien',
-            'footer.copyright': '© 2024 EquiPilates. Alle Rechte vorbehalten.'
-        }
-    };
+    // i18n translations are loaded from i18n.js
+    // const I18N is defined there
     
     function updateContent(index, opts = { animate: true }) {
         const lang = getCurrentLang();
@@ -1012,7 +578,7 @@ function initHeroSlider() {
             titleLines[0].textContent = slide.title[0];
             titleLines[1].textContent = slide.title[1];
             description.innerHTML = slide.description;
-            ctas[0].innerHTML = `<span>${slide.cta1.text}</span><div class="btn-arrow">→</div>`;
+            ctas[0].innerHTML = `<span>${slide.cta1.text}</span><div class="btn-arrow">&rarr;</div>`;
             ctas[0].href = slide.cta1.link;
             ctas[0].setAttribute('target', slide.cta1.link.startsWith('http') ? '_blank' : '_self');
             ctas[0].setAttribute('rel', slide.cta1.link.startsWith('http') ? 'noopener' : '');
@@ -1298,27 +864,20 @@ function initNavigation() {
         }
     });
     
-    // Function to update nav background based on scroll position
-    function updateNavBackground() {
-        const currentScroll = window.pageYOffset || window.scrollY;
+    // Hide nav on scroll down, show on scroll up
+    window.addEventListener('scroll', () => {
+        const currentScroll = window.pageYOffset;
         const hero = document.querySelector('.hero');
         const heroHeight = hero ? hero.offsetHeight : window.innerHeight;
         
-        // Add/remove scrolled class based on hero section (80% of hero height)
+        // Add/remove scrolled class based on hero section position
         if (currentScroll > heroHeight * 0.8) {
             nav.classList.add('scrolled');
         } else {
             nav.classList.remove('scrolled');
         }
-    }
-    
-    // Hide nav on scroll down, show on scroll up
-    // Add background when scrolled past hero section
-    window.addEventListener('scroll', () => {
-        const currentScroll = window.pageYOffset || window.scrollY;
         
-        updateNavBackground();
-        
+        // Hide/show nav based on scroll direction
         if (currentScroll > lastScroll && currentScroll > 500) {
             nav.classList.add('hidden');
             // Close menu if open when scrolling
@@ -1330,24 +889,39 @@ function initNavigation() {
         }
         
         lastScroll = currentScroll;
-    }, { passive: true });
+    });
+}
+
+// ==========================================
+// INTERACTIVE GALLERY FILTERING
+// ==========================================
+function initGalleryFilters() {
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const galleryItems = document.querySelectorAll('.gallery-item');
     
-    // Update nav background after smooth scroll (for anchor links)
-    window.addEventListener('scrollend', updateNavBackground);
+    if (filterBtns.length === 0 || galleryItems.length === 0) return;
     
-    // Fallback: check periodically after smooth scroll
-    let scrollTimeout;
-    window.addEventListener('scroll', () => {
-        clearTimeout(scrollTimeout);
-        scrollTimeout = setTimeout(() => {
-            updateNavBackground();
-        }, 100);
-    }, { passive: true });
-    
-    // Check on page load
-    setTimeout(() => {
-        updateNavBackground();
-    }, 100);
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Remove active from all buttons
+            filterBtns.forEach(b => b.classList.remove('active'));
+            // Add active to clicked button
+            btn.classList.add('active');
+            
+            const filter = btn.dataset.filter;
+            
+            // Filter gallery items
+            galleryItems.forEach(item => {
+                if (filter === 'all' || item.classList.contains(filter)) {
+                    item.classList.remove('hidden');
+                    item.style.display = 'block';
+                } else {
+                    item.classList.add('hidden');
+                    item.style.display = 'none';
+                }
+            });
+        });
+    });
 }
 
 // ==========================================
@@ -1369,24 +943,24 @@ function initUpgradeWizard() {
     const wa = (text) => `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
 
     const kitBySpace = {
-        'Até 25m²': ['Reformer', 'Chair', 'Acessórios'],
-        '25–40m²': ['Reformer', 'Cadillac (ou Tower)', 'Chair'],
-        '40–70m²': ['2x Reformers', 'Cadillac', 'Chair + acessórios'],
-        '70m²+': ['3–4x Reformers', 'Cadillac', 'Barrels + acessórios']
+        'Ate 25m2': ['Reformer', 'Chair', 'Acessorios'],
+        '25-40m2': ['Reformer', 'Cadillac (ou Tower)', 'Chair'],
+        '40-70m2': ['2x Reformers', 'Cadillac', 'Chair + acessorios'],
+        '70m2+': ['3-4x Reformers', 'Cadillac', 'Barrels + acessorios']
     };
 
     function recommend(space, goal, current) {
         const base = kitBySpace[space] || ['Reformer', 'Cadillac', 'Chair'];
         let focus = '';
-        if (/reabilita|fisioterapia/i.test(goal)) focus = 'Foco em reabilitação: priorize Cadillac + acessórios terapêuticos.';
-        if (/reduzir manutenção/i.test(goal)) focus = 'Upgrade para reduzir manutenção: avalie troca de molas, estofamento e revisão de componentes.';
-        if (/contemporânea/i.test(goal)) focus = 'Linha contemporânea: layout moderno, robustez e design avançado para performance e experiência premium.';
-        if (/capacidade/i.test(goal)) focus = 'Expansão: mais estações = mais horários e melhor previsibilidade de agenda.';
+        if (/reabilita|fisioterapia/i.test(goal)) focus = 'Foco em reabilitacao: priorize Cadillac + acessorios terapeuticos.';
+        if (/reduzir manuten/i.test(goal)) focus = 'Upgrade para reduzir manutencao: avalie troca de molas, estofamento e revisao de componentes.';
+        if (/contempor/i.test(goal)) focus = 'Linha contemporanea: layout moderno, robustez e design avancado para performance e experiencia premium.';
+        if (/capacidade/i.test(goal)) focus = 'Expansao: mais estacoes = mais horarios e melhor previsibilidade de agenda.';
 
         const currentStr = (current || '').trim();
-        const currentNote = currentStr ? `Equipamentos atuais: ${currentStr}` : 'Equipamentos atuais: não informado';
+        const currentNote = currentStr ? `Equipamentos atuais: ${currentStr}` : 'Equipamentos atuais: nao informado';
         return {
-            kitTitle: 'Sugestão inicial de kit (ponto de partida):',
+            kitTitle: 'Sugestao inicial de kit (ponto de partida):',
             kit: base,
             focus,
             note: currentNote
@@ -1407,13 +981,13 @@ function initUpgradeWizard() {
 
     function buildMessage(space, goal, current, rec) {
         return [
-            'Olá, vim pelo site da Equipilates e quero ajuda para planejar meu upgrade.',
+            'Ola, vim pelo site da Equipilates e quero ajuda para planejar meu upgrade.',
             '',
-            `Espaço: ${space}`,
+            `Espaco: ${space}`,
             `Objetivo: ${goal}`,
-            `Equipamentos atuais: ${(current || 'não informado').trim() || 'não informado'}`,
+            `Equipamentos atuais: ${(current || 'nao informado').trim() || 'nao informado'}`,
             '',
-            `Sugestão inicial (site): ${rec.kit.join(', ')}.`,
+            `Sugestao inicial (site): ${rec.kit.join(', ')}.`,
             'Podem me orientar com kit ideal e layout?'
         ].join('\n');
     }
@@ -1433,7 +1007,7 @@ function initUpgradeWizard() {
         const rec = recommend(space, goal, current);
         const name = (document.getElementById('wiz-name')?.value || '').trim();
         const email = (document.getElementById('wiz-email')?.value || '').trim();
-        const subject = encodeURIComponent('Equipilates | Upgrade do estúdio - dados do Wizard');
+        const subject = encodeURIComponent('Equipilates | Upgrade do estudio - dados do Wizard');
         const body = encodeURIComponent([
             name ? `Nome: ${name}` : '',
             email ? `Email: ${email}` : '',
@@ -1498,8 +1072,6 @@ function initStickyScroll() {
                 // Animate split chars
                 const splitChars = entry.target.querySelectorAll('.split-chars');
                 splitChars.forEach(el => animateSplitChars(el));
-                
-                observer.unobserve(entry.target);
             }
         });
     }, { threshold: 0.3 });
@@ -1644,7 +1216,6 @@ function initInnovationCards() {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('active');
-                observer.unobserve(entry.target);
             }
         });
     }, { threshold: 0.2 });
@@ -1705,7 +1276,7 @@ function initFormAnimations() {
         // Simulate sending
         await new Promise(resolve => setTimeout(resolve, 2000));
         
-        btn.querySelector('span').textContent = 'ENVIADO ✓';
+        btn.querySelector('span').textContent = 'ENVIADO Ô£ô';
         btn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
         
         setTimeout(() => {
@@ -1764,8 +1335,7 @@ const fadeElements = document.querySelectorAll('.fade-in');
 
 const fadeObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
-        if (entry.isIntersecting && !entry.target.dataset.animated) {
-            entry.target.dataset.animated = 'true';
+        if (entry.isIntersecting) {
             entry.target.style.opacity = '0';
             entry.target.style.transform = 'translateY(30px)';
             entry.target.style.transition = 'all 1s cubic-bezier(0.75, 0, 0.27, 1)';
@@ -1898,8 +1468,8 @@ document.querySelectorAll('.submit-btn, .nav-menu a').forEach(btn => {
 // CONSOLE EASTER EGG
 // ==========================================
 console.log('%c EQUIPILATES ', 'font-size: 50px; font-weight: bold; background: linear-gradient(135deg, #00F5FF, #FF00FF); padding: 20px; color: white;');
-console.log('%c🚀 Website desenvolvido com tecnologia de ponta', 'font-size: 16px; color: #00F5FF;');
-console.log('%c💜 Scroll experience by EquiPilates', 'font-size: 14px; color: #FF00FF;');
+console.log('%c­ƒÜÇ Website desenvolvido com tecnologia de ponta', 'font-size: 16px; color: #00F5FF;');
+console.log('%c­ƒÆ£ Scroll experience by EquiPilates', 'font-size: 14px; color: #FF00FF;');
 
 // ==========================================
 // DEBUG MODE
