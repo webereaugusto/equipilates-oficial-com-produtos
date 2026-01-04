@@ -1356,7 +1356,6 @@ body > * {
     width: 100%;
     height: 340px;
     object-fit: cover;
-    border-radius: 12px;
     margin-bottom: 16px;
 }
 
@@ -3397,8 +3396,8 @@ a, button, input, textarea, select {
 
 .gallery-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 30px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
 }
 
 .gallery-item {
@@ -3476,13 +3475,19 @@ a, button, input, textarea, select {
     transform: translateY(0);
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
+    .gallery-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 900px) {
     .gallery-grid {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 600px) {
     .gallery-grid {
         grid-template-columns: 1fr;
     }
