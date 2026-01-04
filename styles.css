@@ -7239,7 +7239,7 @@ a, button, input, textarea, select {
    SECTION: Testimonials Social Style / Depoimentos
    ========================================== */
 .section-testimonials-social {
-    background: #fffffa;
+    background: #FFFDF7;
     padding: 100px 0 120px 0; /* Extra padding no bottom para os dots */
     position: relative;
 }
@@ -7428,6 +7428,11 @@ a, button, input, textarea, select {
         margin-bottom: 50px;
     }
     
+    .testimonials-social-subtitle {
+        font-size: 16px;
+        padding: 0 20px;
+    }
+    
     .social-card-body p {
         font-size: 14px;
     }
@@ -7451,6 +7456,10 @@ a, button, input, textarea, select {
 @media (max-width: 480px) {
     .section-testimonials-social {
         padding: 60px 0;
+    }
+    
+    .testimonials-social-subtitle {
+        font-size: 15px;
     }
     
     .testimonials-social-wrapper {
