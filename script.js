@@ -1057,20 +1057,49 @@ function initNavigation() {
 // ==========================================
 function initGalleryFilters() {
     const filterBtns = document.querySelectorAll('.filter-btn');
+    const galleryGrid = document.querySelector('.gallery-grid');
     const galleryItems = document.querySelectorAll('.gallery-item');
     const loadMoreBtn = document.getElementById('btnLoadMore');
     
-    if (galleryItems.length === 0) return;
+    if (galleryItems.length === 0 || !galleryGrid) return;
     
     // Configurações de carregamento progressivo
-    const INITIAL_ITEMS = 12; // 3 linhas de 4
+    const INITIAL_ITEMS = 8; // 2 linhas de 4
     const ITEMS_PER_LOAD = 8; // 2 linhas de 4
     let visibleCount = INITIAL_ITEMS;
     let currentFilter = 'all';
     
-    // Função para obter itens filtrados
+    // Função para embaralhar array (Fisher-Yates shuffle)
+    function shuffleArray(array) {
+        const shuffled = [...array];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
+    }
+    
+    // Embaralhar os itens da galeria no DOM
+    function shuffleGalleryItems() {
+        const itemsArray = Array.from(galleryItems);
+        const shuffledItems = shuffleArray(itemsArray);
+        
+        // Remover todos os itens do grid
+        itemsArray.forEach(item => item.remove());
+        
+        // Reinserir na ordem embaralhada
+        shuffledItems.forEach(item => galleryGrid.appendChild(item));
+        
+        return shuffledItems;
+    }
+    
+    // Embaralhar os itens ao carregar a página
+    const shuffledGalleryItems = shuffleGalleryItems();
+    
+    // Função para obter itens filtrados (usa a ordem embaralhada)
     function getFilteredItems() {
-        return Array.from(galleryItems).filter(item => {
+        const currentItems = Array.from(document.querySelectorAll('.gallery-item'));
+        return currentItems.filter(item => {
             if (currentFilter === 'all') return true;
             return item.classList.contains(currentFilter);
         });
@@ -1079,8 +1108,9 @@ function initGalleryFilters() {
     // Função para atualizar visibilidade dos itens
     function updateGalleryVisibility() {
         const filteredItems = getFilteredItems();
+        const allItems = document.querySelectorAll('.gallery-item');
         
-        galleryItems.forEach(item => {
+        allItems.forEach(item => {
             item.classList.add('gallery-hidden');
             item.classList.remove('gallery-reveal');
         });
