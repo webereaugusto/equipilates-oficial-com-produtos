@@ -1,0 +1,8 @@
+.git
+.gitignore
+README.md
+*.md
+*.py
+node_modules
+.DS_Store
+
