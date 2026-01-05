@@ -556,7 +556,7 @@ function initHeroSlider() {
     
     let currentIndex = 0;
     const totalSlides = 3;  // Reduzido de 4 para 3 para melhorar performance
-    const autoPlayInterval = 5000; // 5 seconds per slide
+    const autoPlayInterval = 9000; // 9 seconds per slide
     let autoPlayTimer = null;
     
     const WHATSAPP_NUMBER = '5521967329318';
@@ -588,7 +588,7 @@ function initHeroSlider() {
                 number: '03',
                 tag: 'LÍDER GLOBAL',
                 title: ['A MAIOR FÁBRICA', 'DE PILATES DA AMÉRICA LATINA'],
-                description: 'Desde 2006 exportando para 24+ países. Fábrica própria de 2.500m²<br/>com tecnologia de ponta em Resende-RJ.',
+                description: 'Desde 2006 exportando para 24+ países. Fábrica própria de 5.000m²<br/>com tecnologia de ponta em Resende-RJ.',
                 cta1: { text: 'Conhecer a Fábrica', link: '#manifesto' },
                 cta2: { text: 'Falar com Especialista', link: buildWhatsAppLink('Olá, gostaria de conhecer mais sobre a Equipilates.') }
             }
@@ -640,7 +640,7 @@ function initHeroSlider() {
                 number: '03',
                 tag: 'LÍDER GLOBAL',
                 title: ['LA MAYOR FÁBRICA', 'DE PILATES DE LATINOAMÉRICA'],
-                description: 'Exportando a 24+ países desde 2006. Fábrica propia de 2.500m²<br/>con tecnología de punta en Brasil.',
+                description: 'Exportando a 24+ países desde 2006. Fábrica propia de 5.000m²<br/>con tecnología de punta en Brasil.',
                 cta1: { text: 'Conocer la Fábrica', link: '#manifesto' },
                 cta2: { text: 'Hablar con Experto', link: buildWhatsAppLink('Hola, me gustaría conocer más sobre Equipilates.') }
             }
@@ -666,7 +666,7 @@ function initHeroSlider() {
                 number: '03',
                 tag: 'GLOBALER MARKTFÜHRER',
                 title: ['DIE GRÖSSTE PILATES-', 'FABRIK IN LATEINAMERIKA'],
-                description: 'Seit 2006 in 24+ Länder exportierend. Eigene 2.500m² Fabrik<br/>mit modernster Technologie in Brasilien.',
+                description: 'Seit 2006 in 24+ Länder exportierend. Eigene 5.000m² Fabrik<br/>mit modernster Technologie in Brasilien.',
                 cta1: { text: 'Fabrik Entdecken', link: '#manifesto' },
                 cta2: { text: 'Mit Experten Sprechen', link: buildWhatsAppLink('Hallo, ich möchte mehr über Equipilates erfahren.') }
             }
