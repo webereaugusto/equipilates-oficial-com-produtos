@@ -1586,7 +1586,7 @@ body > * {
     gap: 12px;
 }
 
-.footer-group h5 {
+.footer-group h4 {
     font-size: 14px;
     font-weight: 600;
     color: var(--black);
