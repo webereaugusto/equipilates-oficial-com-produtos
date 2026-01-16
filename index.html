@@ -2,15 +2,6 @@
 <html lang="pt-BR" prefix="og: https://ogp.me/ns#">
 <head>
     <meta charset="UTF-8">
-    
-    <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-M7LH4LG7');</script>
-    <!-- End Google Tag Manager -->
-    
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <!-- Favicon -->
@@ -385,11 +376,7 @@
     <link rel="alternate" hreflang="x-default" href="https://www.equipilates.com.br/">
 </head>
 <body>
-<!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-M7LH4LG7"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->
-    <!-- Progress Bar -->
+<!-- Progress Bar -->
     <div class="scroll-progress"></div>
 
     <!-- Menu Overlay -->
@@ -1920,5 +1907,41 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- Scripts com defer para não bloquear renderização -->
     <script src="i18n.js" defer></script>
     <script src="script.js" defer></script>
+    
+    <!-- Google Tag Manager - Lazy Load (carrega após interação para melhor performance) -->
+    <script>
+    (function() {
+        var gtmLoaded = false;
+        function loadGTM() {
+            if (gtmLoaded) return;
+            gtmLoaded = true;
+            
+            // Carregar GTM
+            (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+            j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+            'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+            })(window,document,'script','dataLayer','GTM-M7LH4LG7');
+            
+            // Adicionar noscript fallback dinamicamente
+            var noscript = document.createElement('noscript');
+            var iframe = document.createElement('iframe');
+            iframe.src = 'https://www.googletagmanager.com/ns.html?id=GTM-M7LH4LG7';
+            iframe.height = '0';
+            iframe.width = '0';
+            iframe.style.cssText = 'display:none;visibility:hidden';
+            noscript.appendChild(iframe);
+            document.body.insertBefore(noscript, document.body.firstChild);
+        }
+        
+        // Carregar GTM após primeira interação do usuário
+        ['scroll', 'click', 'touchstart', 'mousemove', 'keydown'].forEach(function(event) {
+            window.addEventListener(event, loadGTM, {once: true, passive: true});
+        });
+        
+        // Fallback: carregar após 5 segundos se não houver interação
+        setTimeout(loadGTM, 5000);
+    })();
+    </script>
 </body>
 </html>
