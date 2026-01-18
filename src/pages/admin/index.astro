@@ -1,0 +1,722 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { supabase } from '../../lib/supabase';
+
+// Buscar estatísticas
+const { count: totalProducts } = await supabase
+  .from('products')
+  .select('*', { count: 'exact', head: true });
+
+const { count: activeProducts } = await supabase
+  .from('products')
+  .select('*', { count: 'exact', head: true })
+  .eq('is_active', true);
+
+const { data: categories } = await supabase
+  .from('categories')
+  .select('id, name, slug');
+
+const { data: recentProducts } = await supabase
+  .from('products')
+  .select('id, title, slug, price, is_active, created_at, category:categories(name)')
+  .order('created_at', { ascending: false })
+  .limit(5);
+
+// Buscar configurações do site
+const { data: priceSettingsData } = await supabase
+  .from('site_settings')
+  .select('value')
+  .eq('key', 'show_prices')
+  .single();
+
+const { data: whatsappData } = await supabase
+  .from('site_settings')
+  .select('value')
+  .eq('key', 'whatsapp_number')
+  .single();
+
+const showPrices = priceSettingsData?.value !== 'false';
+const whatsappNumber = whatsappData?.value || '5521967329318';
+
+const formatPrice = (price: number) => {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(price);
+};
+
+const formatDate = (date: string) => {
+  return new Date(date).toLocaleDateString('pt-BR');
+};
+---
+
+<AdminLayout title="Dashboard">
+  <div class="dashboard">
+    <header class="page-header">
+      <h1>Dashboard</h1>
+      <p>Bem-vindo ao painel administrativo da Equipilates</p>
+    </header>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon blue">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-number">{totalProducts || 0}</span>
+          <span class="stat-label">Total de Produtos</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-number">{activeProducts || 0}</span>
+          <span class="stat-label">Produtos Ativos</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon purple">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-number">{categories?.length || 0}</span>
+          <span class="stat-label">Categorias</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon orange">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-number">2</span>
+          <span class="stat-label">Anos de Garantia</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Toggle -->
+    <div class="section settings-section">
+      <h2>Configurações do Site</h2>
+      <div class="settings-card">
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">Mostrar Preços no Site</span>
+            <span class="setting-description">Quando desativado, os preços dos produtos não serão exibidos no frontend</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="showPricesToggle" checked={showPrices} />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        
+        <div class="setting-item whatsapp-setting">
+          <div class="setting-info">
+            <span class="setting-label">WhatsApp para Contato</span>
+            <span class="setting-description">Número que aparecerá nos botões de contato do site (com código do país, ex: 5521999999999)</span>
+          </div>
+          <div class="whatsapp-input-wrapper">
+            <input 
+              type="text" 
+              id="whatsappInput" 
+              value={whatsappNumber}
+              placeholder="5521999999999"
+              class="whatsapp-input"
+            />
+            <button type="button" id="saveWhatsapp" class="btn-save-whatsapp">Salvar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="section">
+      <h2>Ações Rápidas</h2>
+      <div class="actions-grid">
+        <a href="/admin/produtos/novo" class="action-card">
+          <div class="action-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="16"/>
+              <line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+          </div>
+          <span>Novo Produto</span>
+        </a>
+        <a href="/admin/produtos" class="action-card">
+          <div class="action-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="8" y1="6" x2="21" y2="6"/>
+              <line x1="8" y1="12" x2="21" y2="12"/>
+              <line x1="8" y1="18" x2="21" y2="18"/>
+              <line x1="3" y1="6" x2="3.01" y2="6"/>
+              <line x1="3" y1="12" x2="3.01" y2="12"/>
+              <line x1="3" y1="18" x2="3.01" y2="18"/>
+            </svg>
+          </div>
+          <span>Listar Produtos</span>
+        </a>
+        <a href="/produtos" target="_blank" class="action-card">
+          <div class="action-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+          </div>
+          <span>Ver Loja</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Recent Products -->
+    <div class="section">
+      <div class="section-header">
+        <h2>Produtos Recentes</h2>
+        <a href="/admin/produtos" class="link-all">Ver todos →</a>
+      </div>
+      
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Produto</th>
+              <th>Categoria</th>
+              <th>Preço</th>
+              <th>Status</th>
+              <th>Data</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {recentProducts?.map(product => (
+              <tr>
+                <td>
+                  <span class="product-name">{product.title.split(' - ')[0]}</span>
+                </td>
+                <td>
+                  <span class="category-badge">{product.category?.name}</span>
+                </td>
+                <td>{formatPrice(product.price)}</td>
+                <td>
+                  <span class:list={['status-badge', product.is_active ? 'active' : 'inactive']}>
+                    {product.is_active ? 'Ativo' : 'Inativo'}
+                  </span>
+                </td>
+                <td>{formatDate(product.created_at)}</td>
+                <td>
+                  <a href={`/admin/produtos/${product.id}`} class="btn-edit">Editar</a>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<style>
+  .dashboard {
+    max-width: 1200px;
+  }
+
+  .page-header {
+    margin-bottom: 32px;
+  }
+
+  .page-header h1 {
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+  }
+
+  .page-header p {
+    color: var(--text-muted);
+  }
+
+  /* Stats */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 40px;
+  }
+
+  .stat-card {
+    background: var(--primary);
+    border-radius: var(--radius);
+    padding: 24px;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .stat-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .stat-icon.blue { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+  .stat-icon.green { background: rgba(34, 197, 94, 0.1); color: #22c55e; }
+  .stat-icon.purple { background: rgba(168, 85, 247, 0.1); color: #a855f7; }
+  .stat-icon.orange { background: rgba(212, 165, 116, 0.1); color: var(--caramel); }
+
+  .stat-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .stat-number {
+    font-size: 1.8rem;
+    font-weight: 700;
+    font-family: 'Sora', sans-serif;
+  }
+
+  .stat-label {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+  }
+
+  /* Sections */
+  .section {
+    margin-bottom: 40px;
+  }
+
+  .section h2 {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .link-all {
+    color: var(--caramel);
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  /* Actions */
+  .actions-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .action-card {
+    background: var(--primary);
+    border-radius: var(--radius);
+    padding: 24px;
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+
+  .action-card:hover {
+    border-color: var(--caramel);
+    transform: translateY(-2px);
+  }
+
+  .action-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(212, 165, 116, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--caramel);
+  }
+
+  .action-card span {
+    font-weight: 500;
+  }
+
+  /* Table */
+  .table-container {
+    background: var(--primary);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .data-table th {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .data-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .product-name {
+    font-weight: 500;
+  }
+
+  .category-badge {
+    background: var(--bg-card);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+  }
+
+  .status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+
+  .status-badge.active {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+  }
+
+  .status-badge.inactive {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+  }
+
+  .btn-edit {
+    padding: 6px 14px;
+    background: var(--bg-card);
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+
+  .btn-edit:hover {
+    background: var(--caramel);
+    color: var(--bg-dark);
+  }
+
+  /* Settings */
+  .settings-card {
+    background: var(--primary);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    border: 1px solid var(--border);
+  }
+
+  .setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .setting-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .setting-label {
+    font-weight: 600;
+    font-size: 1rem;
+  }
+
+  .setting-description {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 52px;
+    height: 28px;
+    flex-shrink: 0;
+  }
+
+  .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #444;
+    transition: 0.3s;
+    border-radius: 28px;
+  }
+
+  .toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+  }
+
+  .toggle-switch input:checked + .toggle-slider {
+    background-color: var(--caramel);
+  }
+
+  .toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(24px);
+  }
+
+  .toggle-switch.loading .toggle-slider {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  .setting-item.whatsapp-setting {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  .whatsapp-input-wrapper {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .whatsapp-input {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    color: var(--text-light);
+    font-size: 0.95rem;
+    width: 200px;
+    transition: border-color 0.3s;
+  }
+
+  .whatsapp-input:focus {
+    outline: none;
+    border-color: var(--caramel);
+  }
+
+  .btn-save-whatsapp {
+    background: var(--caramel);
+    color: var(--bg-dark);
+    border: none;
+    padding: 10px 18px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .btn-save-whatsapp:hover {
+    background: var(--caramel-dark);
+  }
+
+  .btn-save-whatsapp:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .btn-save-whatsapp.success {
+    background: #22c55e;
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .actions-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .actions-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .table-container {
+      overflow-x: auto;
+    }
+
+    .data-table {
+      min-width: 600px;
+    }
+  }
+</style>
+
+<script is:inline src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script is:inline>
+  window.addEventListener('load', function() {
+    const SUPABASE_URL = 'https://hijmbsxcvcugnmkvldgl.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhpam1ic3hjdmN1Z25ta3ZsZGdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2Nzk1MzUsImV4cCI6MjA4NDI1NTUzNX0.Q4Hy-K8RxhVDCarj_ojD5ILb11iO4Jk7KC-5fYlrTh0';
+    
+    if (!window.supabase) {
+      console.error('Supabase não carregou');
+      return;
+    }
+    
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    console.log('Supabase client criado');
+
+    const toggle = document.getElementById('showPricesToggle');
+    const toggleSwitch = toggle ? toggle.parentElement : null;
+
+    if (toggle) {
+      toggle.addEventListener('change', async function() {
+        if (toggleSwitch) toggleSwitch.classList.add('loading');
+        
+        const newValue = toggle.checked ? 'true' : 'false';
+        console.log('Salvando configuração:', newValue);
+        
+        try {
+          // Primeiro tenta atualizar
+          const { data: updateData, error: updateError } = await supabaseClient
+            .from('site_settings')
+            .update({ value: newValue, updated_at: new Date().toISOString() })
+            .eq('key', 'show_prices')
+            .select();
+
+          console.log('Update result:', updateData, updateError);
+
+          // Se não atualizou nenhum registro, insere
+          if (!updateData || updateData.length === 0) {
+            const { data: insertData, error: insertError } = await supabaseClient
+              .from('site_settings')
+              .insert({ key: 'show_prices', value: newValue })
+              .select();
+            
+            console.log('Insert result:', insertData, insertError);
+            if (insertError) throw insertError;
+          }
+
+          if (updateError) throw updateError;
+          
+          // Feedback visual
+          const label = document.querySelector('.setting-label');
+          const originalText = label ? label.textContent : '';
+          if (label) {
+            label.textContent = toggle.checked ? 'Preços visíveis ✓' : 'Preços ocultos ✓';
+            setTimeout(function() {
+              label.textContent = originalText || 'Mostrar Preços no Site';
+            }, 2000);
+          }
+        } catch (err) {
+          console.error('Erro ao salvar configuração:', err);
+          // Reverte o toggle em caso de erro
+          toggle.checked = !toggle.checked;
+          alert('Erro ao salvar configuração. Verifique o console para mais detalhes.');
+        } finally {
+          if (toggleSwitch) toggleSwitch.classList.remove('loading');
+        }
+      });
+    }
+
+    // WhatsApp save
+    const whatsappInput = document.getElementById('whatsappInput');
+    const saveWhatsappBtn = document.getElementById('saveWhatsapp');
+
+    if (saveWhatsappBtn && whatsappInput) {
+      saveWhatsappBtn.addEventListener('click', async function() {
+        const newValue = whatsappInput.value.replace(/\D/g, ''); // Remove não-números
+        
+        if (!newValue || newValue.length < 10) {
+          alert('Digite um número válido com DDD');
+          return;
+        }
+
+        saveWhatsappBtn.disabled = true;
+        saveWhatsappBtn.textContent = 'Salvando...';
+
+        try {
+          // Primeiro tenta atualizar
+          const { data: updateData, error: updateError } = await supabaseClient
+            .from('site_settings')
+            .update({ value: newValue, updated_at: new Date().toISOString() })
+            .eq('key', 'whatsapp_number')
+            .select();
+
+          // Se não atualizou nenhum registro, insere
+          if (!updateData || updateData.length === 0) {
+            const { error: insertError } = await supabaseClient
+              .from('site_settings')
+              .insert({ key: 'whatsapp_number', value: newValue });
+            
+            if (insertError) throw insertError;
+          }
+
+          if (updateError) throw updateError;
+
+          whatsappInput.value = newValue;
+          saveWhatsappBtn.textContent = 'Salvo ✓';
+          saveWhatsappBtn.classList.add('success');
+          
+          setTimeout(function() {
+            saveWhatsappBtn.textContent = 'Salvar';
+            saveWhatsappBtn.classList.remove('success');
+          }, 2000);
+
+        } catch (err) {
+          console.error('Erro ao salvar WhatsApp:', err);
+          alert('Erro ao salvar. Tente novamente.');
+          saveWhatsappBtn.textContent = 'Salvar';
+        } finally {
+          saveWhatsappBtn.disabled = false;
+        }
+      });
+    }
+  });
+</script>

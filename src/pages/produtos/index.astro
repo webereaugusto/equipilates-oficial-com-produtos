@@ -1,0 +1,634 @@
+---
+export const prerender = false;
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { supabase } from '../../lib/supabase';
+import { getProductImagePath } from '../../lib/imageMap';
+
+// Buscar categorias e produtos
+const { data: categories } = await supabase
+  .from('categories')
+  .select('*')
+  .order('name');
+
+const { data: products } = await supabase
+  .from('products')
+  .select(`
+    *,
+    category:categories(name, slug)
+  `)
+  .eq('is_active', true)
+  .order('order_index');
+
+// Buscar configuração de exibição de preços
+const { data: priceSettings } = await supabase
+  .from('site_settings')
+  .select('value')
+  .eq('key', 'show_prices')
+  .single();
+
+const showPrices = priceSettings?.value !== 'false';
+
+// Buscar número de WhatsApp
+const { data: whatsappSettings } = await supabase
+  .from('site_settings')
+  .select('value')
+  .eq('key', 'whatsapp_number')
+  .single();
+
+const whatsappNumber = whatsappSettings?.value || '5521967329318';
+console.log('Show Prices:', showPrices);
+
+const formatPrice = (price: number) => {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(price);
+};
+---
+
+<BaseLayout 
+  title="Equipamentos e Acessórios para Pilates - Catálogo Completo"
+  description="Equipamentos e Acessórios para Pilates profissionais. Linha Clássica em Alumínio, Linha Contemporânea em Madeira Maciça e Acessórios. Reformer, Cadillac, Chair, Barrel e mais. Fábrica própria com 2 anos de garantia."
+  keywords="equipamentos para pilates, acessórios para pilates, aparelhos de pilates, reformer pilates, cadillac pilates, chair pilates, ladder barrel, equipamentos pilates profissional, equipilates, comprar equipamentos pilates"
+>
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <h1>Nossos <span class="highlight">Equipamentos</span></h1>
+      <p>Conheça a linha completa de equipamentos Equipilates. Qualidade premium, design autêntico e 2 anos de garantia.</p>
+    </div>
+  </section>
+
+  <!-- Filtros por Categoria -->
+  <section class="filters">
+    <div class="container">
+      <div class="filter-buttons">
+        <a href="/produtos" class="filter-btn active">Todos</a>
+        {categories?.map(cat => (
+          <a href={`/produtos/linha/${cat.slug}`} class="filter-btn">{cat.name}</a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Products Grid -->
+  <section class="products-section">
+    <div class="container">
+      <div class="products-grid">
+        {products?.map(product => (
+          <a href={`/produtos/${product.slug}`} class="product-card">
+            <div class="product-image">
+              <img 
+                src={getProductImagePath(product.slug, product.category?.slug || '')}
+                alt={product.title}
+                loading="lazy"
+                onerror="this.src='/images/logo-equipilates.webp'"
+              />
+              <span class="product-category">{product.category?.name}</span>
+              <!-- CTA Overlay na imagem -->
+              <div class="cta-overlay">
+                <span class="cta-btn">Ver Produto</span>
+              </div>
+            </div>
+            <div class="product-info">
+              <h3>{product.title.split(' - ')[0]}</h3>
+              <p class="product-desc">{product.short_description}</p>
+              <div class="product-footer">
+                {showPrices ? (
+                  <span class="product-price">{formatPrice(product.price)}</span>
+                ) : (
+                  <span class="product-price consult">Consulte</span>
+                )}
+                <span class="btn-view">Ver Detalhes →</span>
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- SEO Section - Por que escolher -->
+  <section class="why-choose">
+    <div class="container">
+      <div class="why-header">
+        <span class="badge-tag">Equipamentos para Studios de Pilates</span>
+        <h2>A Maior Fábrica de <span class="highlight">Equipamentos de Pilates</span> da América Latina</h2>
+        <p>Do desenvolvimento à entrega no seu studio: um ecossistema completo para equipar Studios de Pilates com excelência</p>
+      </div>
+      
+      <div class="why-grid">
+        <div class="why-card">
+          <div class="why-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+          </div>
+          <span class="why-number">01</span>
+          <h3>Desenvolvimento Premium</h3>
+          <p>Equipamentos de Pilates projetados com engenharia própria. Biomecânica perfeita e preço justo para o seu studio.</p>
+        </div>
+        
+        <div class="why-card">
+          <div class="why-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <span class="why-number">02</span>
+          <h3>Fabricação Própria</h3>
+          <p>A maior fábrica de equipamentos para Studios de Pilates no Hemisfério Sul. 5.000m² em Resende-RJ com tecnologia de ponta.</p>
+        </div>
+        
+        <div class="why-card">
+          <div class="why-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+          </div>
+          <span class="why-number">03</span>
+          <h3>Distribuição Global</h3>
+          <p>Entregamos equipamentos para Studios de Pilates em todo o Brasil e exportamos para 24+ países nos 5 continentes.</p>
+        </div>
+        
+        <div class="why-card">
+          <div class="why-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <polyline points="9 12 11 14 15 10"/>
+            </svg>
+          </div>
+          <span class="why-number">04</span>
+          <h3>Suporte Vitalício</h3>
+          <p>Seu studio sempre funcionando. 2 anos de garantia, assistência direto de fábrica e peças para manutenção imediata.</p>
+        </div>
+      </div>
+
+      <div class="stats-bar">
+        <div class="stat-item">
+          <span class="stat-number">5.000m²</span>
+          <span class="stat-label">De Planta Fabril</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">24+</span>
+          <span class="stat-label">Países Atendidos</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">30.000+</span>
+          <span class="stat-label">Studios de Pilates</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">18</span>
+          <span class="stat-label">Anos de Mercado</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="container">
+      <div class="cta-content">
+        <h2>Precisa de Ajuda para Escolher?</h2>
+        <p>Nossa equipe de especialistas está pronta para ajudar você a montar o estúdio perfeito.</p>
+        <a href={`https://wa.me/${whatsappNumber}?text=Olá! Gostaria de mais informações sobre os equipamentos de Pilates.`} target="_blank" rel="noopener" class="btn-cta">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+          </svg>
+          Falar com Especialista
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* Hero */
+  .hero {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--bg-dark) 100%);
+    padding: 80px 0 60px;
+    text-align: center;
+  }
+
+  .hero h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    margin-bottom: 16px;
+  }
+
+  .hero .highlight {
+    color: var(--caramel);
+  }
+
+  .hero p {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* Filters */
+  .filters {
+    padding: 30px 0;
+    background: var(--primary);
+    position: sticky;
+    top: 80px;
+    z-index: 100;
+  }
+
+  .filter-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .filter-btn {
+    padding: 10px 24px;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    background: var(--bg-card);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    transition: var(--transition);
+  }
+
+  .filter-btn:hover,
+  .filter-btn.active {
+    background: var(--caramel);
+    color: var(--bg-dark);
+    border-color: var(--caramel);
+  }
+
+  /* Products */
+  .products-section {
+    padding: 60px 0;
+  }
+
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 30px;
+  }
+
+  .product-card {
+    position: relative;
+    background: var(--primary);
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .product-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--caramel);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+  }
+
+  .product-image {
+    position: relative;
+    aspect-ratio: 4/3;
+    overflow: hidden;
+    background: var(--bg-card);
+  }
+
+  .product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+
+  .product-card:hover .product-image img {
+    transform: scale(1.05);
+  }
+
+  .product-category {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: rgba(0, 0, 0, 0.7);
+    color: var(--caramel);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    z-index: 3;
+    backdrop-filter: blur(4px);
+    transition: all 0.3s ease;
+  }
+
+  .product-card:hover .product-category {
+    background: var(--caramel);
+    color: var(--bg-dark);
+  }
+
+  /* CTA Overlay - na imagem */
+  .cta-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 2;
+  }
+
+  .product-card:hover .cta-overlay {
+    opacity: 1;
+  }
+
+  .cta-btn {
+    padding: 12px 28px;
+    background: transparent;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transform: translateY(10px);
+    opacity: 0;
+    transition: all 0.3s ease;
+  }
+
+  .product-card:hover .cta-btn {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .cta-btn:hover {
+    background: var(--caramel);
+    border-color: var(--caramel);
+    color: var(--bg-dark);
+  }
+
+  .product-info {
+    padding: 24px;
+  }
+
+  .product-info h3 {
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+
+  .product-desc {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .product-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .product-price {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--caramel);
+  }
+
+  .product-price.consult {
+    font-size: 1rem;
+    font-style: italic;
+  }
+
+  .btn-view {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .product-card:hover .btn-view {
+    color: var(--caramel);
+  }
+
+  /* Why Choose Section */
+  .why-choose {
+    padding: 80px 0;
+    background: var(--primary);
+  }
+
+  .why-header {
+    text-align: center;
+    margin-bottom: 50px;
+  }
+
+  .badge-tag {
+    display: inline-block;
+    background: transparent;
+    border: 1px solid var(--caramel);
+    color: var(--caramel);
+    padding: 8px 20px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+  }
+
+  .why-header h2 {
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    margin-bottom: 16px;
+  }
+
+  .why-header .highlight {
+    color: var(--caramel);
+  }
+
+  .why-header p {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .why-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 30px;
+    margin-bottom: 60px;
+  }
+
+  .why-card {
+    text-align: center;
+    padding: 30px 20px;
+  }
+
+  .why-icon {
+    width: 70px;
+    height: 70px;
+    background: rgba(212, 165, 116, 0.1);
+    border: 1px solid var(--caramel);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+  }
+
+  .why-icon svg {
+    width: 32px;
+    height: 32px;
+    color: var(--caramel);
+  }
+
+  .why-number {
+    display: block;
+    color: var(--caramel);
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .why-card h3 {
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+  }
+
+  .why-card p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 30px;
+    padding: 40px 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .stat-item {
+    text-align: center;
+  }
+
+  .stat-number {
+    display: block;
+    font-family: 'Sora', sans-serif;
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    font-weight: 700;
+    color: var(--caramel);
+    font-style: italic;
+    margin-bottom: 8px;
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* CTA */
+  .cta-section {
+    padding: 80px 0;
+    background: linear-gradient(135deg, var(--caramel) 0%, var(--caramel-dark) 100%);
+  }
+
+  .cta-content {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .cta-content h2 {
+    font-size: 2rem;
+    color: var(--bg-dark);
+    margin-bottom: 12px;
+  }
+
+  .cta-content p {
+    color: rgba(0, 0, 0, 0.7);
+    font-size: 1.1rem;
+    margin-bottom: 24px;
+  }
+
+  .btn-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-dark);
+    color: white;
+    padding: 16px 32px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 1rem;
+    transition: var(--transition);
+  }
+
+  .btn-cta:hover {
+    background: var(--primary);
+    transform: translateY(-2px);
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .why-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .stats-bar {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .hero {
+      padding: 60px 0 40px;
+    }
+
+    .products-grid {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    .filter-buttons {
+      gap: 8px;
+    }
+
+    .filter-btn {
+      padding: 8px 16px;
+      font-size: 0.85rem;
+    }
+
+    .why-choose {
+      padding: 50px 0;
+    }
+
+    .why-grid {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    .stats-bar {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .cta-content h2 {
+      font-size: 1.5rem;
+    }
+  }
+</style>

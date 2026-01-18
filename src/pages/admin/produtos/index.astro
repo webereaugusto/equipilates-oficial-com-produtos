@@ -1,0 +1,594 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { supabase } from '../../../lib/supabase';
+
+const { data: products } = await supabase
+  .from('products')
+  .select(`
+    *,
+    category:categories(name, slug)
+  `)
+  .order('category_id')
+  .order('order_index');
+
+const formatPrice = (price: number) => {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(price);
+};
+---
+
+<AdminLayout title="Produtos">
+  <div class="products-page">
+    <header class="page-header">
+      <div>
+        <h1>Produtos</h1>
+        <p>Gerencie todos os produtos do catálogo</p>
+      </div>
+      <a href="/admin/produtos/novo" class="btn-primary">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="16"/>
+          <line x1="8" y1="12" x2="16" y2="12"/>
+        </svg>
+        Novo Produto
+      </a>
+    </header>
+
+    <!-- Filters -->
+    <div class="filters">
+      <div class="search-box">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" id="searchInput" placeholder="Buscar produtos...">
+      </div>
+      <select id="categoryFilter">
+        <option value="">Todas as Categorias</option>
+        <option value="linha-classica">Linha Clássica</option>
+        <option value="linha-contemporanea">Linha Contemporânea</option>
+        <option value="acessorios">Acessórios</option>
+      </select>
+      <select id="statusFilter">
+        <option value="">Todos os Status</option>
+        <option value="active">Ativos</option>
+        <option value="inactive">Inativos</option>
+      </select>
+    </div>
+
+    <!-- Products Table -->
+    <div class="table-container">
+      <table class="data-table" id="productsTable">
+        <thead>
+          <tr>
+            <th>Produto</th>
+            <th>Categoria</th>
+            <th>Preço</th>
+            <th>Status</th>
+            <th>Ordem</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {products?.map(product => (
+            <tr data-category={product.category?.slug} data-status={product.is_active ? 'active' : 'inactive'}>
+              <td>
+                <div class="product-cell">
+                  <a href={`/admin/produtos/${product.id}`} class="product-name-link">{product.title.split(' - ')[0]}</a>
+                  <span class="product-slug">/{product.slug}</span>
+                </div>
+              </td>
+              <td>
+                <span class:list={['category-badge', product.category?.slug]}>
+                  {product.category?.name}
+                </span>
+              </td>
+              <td class="price-cell">{formatPrice(product.price)}</td>
+              <td>
+                <span class:list={['status-badge', product.is_active ? 'active' : 'inactive']}>
+                  {product.is_active ? 'Ativo' : 'Inativo'}
+                </span>
+              </td>
+              <td class="order-cell">{product.order_index}</td>
+              <td>
+                <div class="actions-cell">
+                  <a href={`/admin/produtos/${product.id}`} class="btn-action edit" title="Editar">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                  </a>
+                  <a href={`/produtos/${product.slug}`} target="_blank" class="btn-action view" title="Ver no site">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                      <polyline points="15 3 21 3 21 9"/>
+                      <line x1="10" y1="14" x2="21" y2="3"/>
+                    </svg>
+                  </a>
+                  <button class="btn-action delete" data-id={product.id} data-name={product.title.split(' - ')[0]} title="Excluir">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty State -->
+    {!products || products.length === 0 && (
+      <div class="empty-state">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+        </svg>
+        <h3>Nenhum produto cadastrado</h3>
+        <p>Comece adicionando seu primeiro produto</p>
+        <a href="/admin/produtos/novo" class="btn-primary">Adicionar Produto</a>
+      </div>
+    )}
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" id="deleteModal">
+    <div class="modal">
+      <h3>Confirmar Exclusão</h3>
+      <p>Tem certeza que deseja excluir o produto <strong id="productName"></strong>?</p>
+      <p class="warning">Esta ação não pode ser desfeita.</p>
+      <div class="modal-actions">
+        <button class="btn-cancel" id="cancelDelete">Cancelar</button>
+        <button class="btn-delete" id="confirmDelete">Excluir</button>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<style>
+  .products-page {
+    max-width: 1400px;
+  }
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+  }
+
+  .page-header h1 {
+    font-size: 1.8rem;
+    margin-bottom: 4px;
+  }
+
+  .page-header p {
+    color: var(--text-muted);
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--caramel);
+    color: var(--bg-dark);
+    padding: 12px 20px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+
+  .btn-primary:hover {
+    background: #c4955e;
+    transform: translateY(-2px);
+  }
+
+  /* Filters */
+  .filters {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  .search-box {
+    flex: 1;
+    min-width: 250px;
+    position: relative;
+  }
+
+  .search-box svg {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+  }
+
+  .search-box input {
+    width: 100%;
+    padding: 12px 12px 12px 44px;
+    background: var(--primary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 0.95rem;
+  }
+
+  .search-box input:focus {
+    outline: none;
+    border-color: var(--caramel);
+  }
+
+  select {
+    padding: 12px 16px;
+    background: var(--primary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 0.95rem;
+    min-width: 180px;
+    cursor: pointer;
+  }
+
+  select:focus {
+    outline: none;
+    border-color: var(--caramel);
+  }
+
+  /* Table */
+  .table-container {
+    background: var(--primary);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .data-table th {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .data-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .data-table tr.hidden {
+    display: none;
+  }
+
+  .product-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .product-name-link {
+    font-weight: 500;
+    color: var(--text-light);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .product-name-link:hover {
+    color: var(--caramel);
+  }
+
+  .product-slug {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .category-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+
+  .category-badge.linha-classica {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+  }
+
+  .category-badge.linha-contemporanea {
+    background: rgba(168, 85, 247, 0.1);
+    color: #a855f7;
+  }
+
+  .category-badge.acessorios {
+    background: rgba(212, 165, 116, 0.15);
+    color: #D4A574;
+  }
+
+  .price-cell {
+    font-weight: 600;
+    color: var(--caramel);
+  }
+
+  .order-cell {
+    color: var(--text-muted);
+  }
+
+  .status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+
+  .status-badge.active {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+  }
+
+  .status-badge.inactive {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+  }
+
+  .actions-cell {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-action {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    background: var(--bg-card);
+    color: var(--text-muted);
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+  }
+
+  .btn-action:hover {
+    background: var(--caramel);
+    color: var(--bg-dark);
+  }
+
+  .btn-action.delete:hover {
+    background: var(--error);
+    color: white;
+  }
+
+  /* Empty State */
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+  }
+
+  .empty-state svg {
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+
+  .empty-state h3 {
+    font-size: 1.3rem;
+    margin-bottom: 8px;
+  }
+
+  .empty-state p {
+    color: var(--text-muted);
+    margin-bottom: 24px;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .modal-overlay.show {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .modal {
+    background: var(--primary);
+    border-radius: var(--radius);
+    padding: 32px;
+    max-width: 400px;
+    width: 90%;
+    border: 1px solid var(--border);
+  }
+
+  .modal h3 {
+    font-size: 1.3rem;
+    margin-bottom: 12px;
+  }
+
+  .modal p {
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .modal .warning {
+    color: var(--error);
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+  }
+
+  .btn-cancel {
+    padding: 10px 20px;
+    background: var(--bg-card);
+    color: var(--text);
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+
+  .btn-cancel:hover {
+    background: var(--border);
+  }
+
+  .btn-delete {
+    padding: 10px 20px;
+    background: var(--error);
+    color: white;
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+
+  .btn-delete:hover {
+    background: #dc2626;
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .table-container {
+      overflow-x: auto;
+    }
+
+    .data-table {
+      min-width: 800px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .page-header {
+      flex-direction: column;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .filters {
+      flex-direction: column;
+    }
+
+    .search-box {
+      min-width: 100%;
+    }
+
+    select {
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  import { supabase } from '../../../lib/supabase';
+
+  // Search and Filter
+  const searchInput = document.getElementById('searchInput') as HTMLInputElement;
+  const categoryFilter = document.getElementById('categoryFilter') as HTMLSelectElement;
+  const statusFilter = document.getElementById('statusFilter') as HTMLSelectElement;
+  const tableRows = document.querySelectorAll('#productsTable tbody tr');
+
+  function filterTable() {
+    const searchTerm = searchInput.value.toLowerCase();
+    const categoryValue = categoryFilter.value;
+    const statusValue = statusFilter.value;
+
+    tableRows.forEach(row => {
+      const text = row.textContent?.toLowerCase() || '';
+      const category = row.getAttribute('data-category') || '';
+      const status = row.getAttribute('data-status') || '';
+
+      const matchesSearch = text.includes(searchTerm);
+      const matchesCategory = !categoryValue || category === categoryValue;
+      const matchesStatus = !statusValue || status === statusValue;
+
+      if (matchesSearch && matchesCategory && matchesStatus) {
+        row.classList.remove('hidden');
+      } else {
+        row.classList.add('hidden');
+      }
+    });
+  }
+
+  searchInput?.addEventListener('input', filterTable);
+  categoryFilter?.addEventListener('change', filterTable);
+  statusFilter?.addEventListener('change', filterTable);
+
+  // Delete Modal
+  const deleteModal = document.getElementById('deleteModal');
+  const productNameSpan = document.getElementById('productName');
+  const cancelDeleteBtn = document.getElementById('cancelDelete');
+  const confirmDeleteBtn = document.getElementById('confirmDelete');
+  let productIdToDelete: string | null = null;
+
+  document.querySelectorAll('.btn-action.delete').forEach(btn => {
+    btn.addEventListener('click', () => {
+      productIdToDelete = btn.getAttribute('data-id');
+      const productName = btn.getAttribute('data-name');
+      if (productNameSpan) productNameSpan.textContent = productName;
+      deleteModal?.classList.add('show');
+    });
+  });
+
+  cancelDeleteBtn?.addEventListener('click', () => {
+    deleteModal?.classList.remove('show');
+    productIdToDelete = null;
+  });
+
+  confirmDeleteBtn?.addEventListener('click', async () => {
+    if (!productIdToDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', productIdToDelete);
+
+      if (error) throw error;
+
+      // Remove row from table
+      const row = document.querySelector(`[data-id="${productIdToDelete}"]`)?.closest('tr');
+      row?.remove();
+      
+      deleteModal?.classList.remove('show');
+      productIdToDelete = null;
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      alert('Erro ao excluir produto');
+    }
+  });
+
+  // Close modal on overlay click
+  deleteModal?.addEventListener('click', (e) => {
+    if (e.target === deleteModal) {
+      deleteModal.classList.remove('show');
+      productIdToDelete = null;
+    }
+  });
+</script>

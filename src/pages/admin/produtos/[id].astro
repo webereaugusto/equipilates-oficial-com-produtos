@@ -1,0 +1,134 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import ProductForm from '../../../components/admin/ProductForm';
+import { supabase } from '../../../lib/supabase';
+
+export async function getStaticPaths() {
+  const { data: products } = await supabase
+    .from('products')
+    .select('id');
+
+  return products?.map(product => ({
+    params: { id: product.id }
+  })) || [];
+}
+
+const { id } = Astro.params;
+
+const { data: product, error } = await supabase
+  .from('products')
+  .select('*')
+  .eq('id', id)
+  .single();
+
+if (!product) {
+  return Astro.redirect('/admin/produtos');
+}
+
+const { data: categories } = await supabase
+  .from('categories')
+  .select('*')
+  .order('name');
+---
+
+<AdminLayout title={`Editar: ${product.title.split(' - ')[0]}`}>
+  <div class="edit-product-page">
+    <header class="page-header">
+      <div class="breadcrumb">
+        <a href="/admin">Dashboard</a>
+        <span>/</span>
+        <a href="/admin/produtos">Produtos</a>
+        <span>/</span>
+        <span class="current">Editar</span>
+      </div>
+      <div class="header-content">
+        <div>
+          <span class="label">Editando</span>
+          <h1>{product.title.split(' - ')[0]}</h1>
+        </div>
+        <a href={`/produtos/${product.slug}`} target="_blank" class="btn-view">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            <polyline points="15 3 21 3 21 9"/>
+            <line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+          Ver no site
+        </a>
+      </div>
+    </header>
+
+    <ProductForm product={product} categories={categories || []} hideHeader={true} client:load />
+  </div>
+</AdminLayout>
+
+<style>
+  .edit-product-page {
+    max-width: 1200px;
+  }
+
+  .page-header {
+    margin-bottom: 32px;
+  }
+
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    margin-bottom: 16px;
+  }
+
+  .breadcrumb a {
+    color: var(--text-muted);
+  }
+
+  .breadcrumb a:hover {
+    color: var(--caramel);
+  }
+
+  .breadcrumb span {
+    color: var(--text-muted);
+  }
+
+  .breadcrumb .current {
+    color: var(--caramel);
+  }
+
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .page-header .label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+    display: block;
+  }
+
+  .page-header h1 {
+    font-size: 1.8rem;
+    color: var(--caramel);
+  }
+
+  .btn-view {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: var(--bg-card);
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    transition: all 0.3s ease;
+  }
+
+  .btn-view:hover {
+    background: var(--caramel);
+    color: var(--bg-dark);
+  }
+</style>

@@ -1,0 +1,1488 @@
+---
+export const prerender = false;
+
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { supabase } from '../../lib/supabase';
+import { getProductImagePath } from '../../lib/imageMap';
+import type { Product, Category } from '../../lib/database.types';
+
+const { slug } = Astro.params;
+
+// Buscar produto com categoria
+const { data: product, error } = await supabase
+  .from('products')
+  .select(`
+    *,
+    category:categories(*)
+  `)
+  .eq('slug', slug)
+  .single();
+
+if (!product) {
+  return Astro.redirect('/produtos');
+}
+
+// Buscar produtos relacionados (mesma categoria)
+const { data: relatedProducts } = await supabase
+  .from('products')
+  .select(`
+    id, title, slug, short_description, price,
+    category:categories(name, slug)
+  `)
+  .eq('category_id', product.category_id)
+  .neq('id', product.id)
+  .eq('is_active', true)
+  .limit(4);
+
+// Buscar imagens do produto
+const { data: productImages } = await supabase
+  .from('product_images')
+  .select('*')
+  .eq('product_id', product.id)
+  .order('order_index');
+
+// Buscar configuração de exibição de preços
+const { data: priceSettings } = await supabase
+  .from('site_settings')
+  .select('value')
+  .eq('key', 'show_prices')
+  .single();
+
+const showPrices = priceSettings?.value !== 'false';
+
+// Buscar número de WhatsApp
+const { data: whatsappSettings } = await supabase
+  .from('site_settings')
+  .select('value')
+  .eq('key', 'whatsapp_number')
+  .single();
+
+const whatsappNumber = whatsappSettings?.value || '5521967329318';
+
+const formatPrice = (price: number) => {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(price);
+};
+
+// Parse technical specs
+const technicalSpecs = Array.isArray(product.technical_specs) 
+  ? product.technical_specs 
+  : [];
+
+// Parse optional items
+const optionalItems = Array.isArray(product.optional_items)
+  ? product.optional_items
+  : [];
+
+const categorySlug = product.category?.slug || 'linha-classica';
+
+// Determinar imagem principal
+const hasUploadedImages = productImages && productImages.length > 0;
+const mainImageUrl = hasUploadedImages 
+  ? productImages[0].url 
+  : getProductImagePath(product.slug, categorySlug);
+
+// SEO otimizado
+const isAcessorio = categorySlug === 'acessorios';
+const productType = isAcessorio ? 'Acessório para Pilates' : 'Equipamento de Pilates';
+const seoTitle = product.seo_title || `${product.title} | ${productType} - Equipilates`;
+const seoDescription = product.seo_description || `${product.short_description} ${productType} profissional com qualidade premium Equipilates. Fábrica própria com 2 anos de garantia.`;
+const seoKeywords = product.seo_keywords || `${product.title.toLowerCase()}, ${isAcessorio ? 'acessórios para pilates' : 'equipamentos para pilates'}, ${product.category?.name?.toLowerCase()}, equipilates, comprar ${product.title.split(' - ')[0].toLowerCase()}`;
+---
+
+<BaseLayout 
+  title={seoTitle}
+  description={seoDescription}
+  keywords={seoKeywords}
+>
+  <!-- Breadcrumb -->
+  <section class="breadcrumb">
+    <div class="container">
+      <a href="/">Início</a>
+      <span>/</span>
+      <a href="/produtos">Produtos</a>
+      <span>/</span>
+      <a href={`/produtos/linha/${product.category?.slug}`}>{product.category?.name}</a>
+      <span>/</span>
+      <span class="current">{product.title.split(' - ')[0]}</span>
+    </div>
+  </section>
+
+  <!-- Product Detail -->
+  <section class="product-detail">
+    <div class="container">
+      <div class="product-grid">
+        <!-- Image Gallery -->
+        <div class="product-gallery">
+          <div class="main-image">
+            <img 
+              src={mainImageUrl}
+              alt={product.title}
+              id="mainImage"
+              onerror="this.src='/images/logo-equipilates.webp'"
+            />
+          </div>
+          <div class="image-badge">
+            <span>{product.category?.name}</span>
+          </div>
+          {hasUploadedImages && productImages.length > 1 && (
+            <div class="image-thumbnails">
+              {productImages.map((img: any, index: number) => (
+                <button 
+                  class={`thumbnail ${index === 0 ? 'active' : ''}`}
+                  data-image={img.url}
+                  onclick="document.getElementById('mainImage').src = this.dataset.image; document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active')); this.classList.add('active');"
+                >
+                  <img src={img.url} alt={`${product.title} - Imagem ${index + 1}`} />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <!-- Product Info -->
+        <div class="product-info">
+          <h1>{product.title}</h1>
+          
+          <p class="short-desc">{product.short_description}</p>
+
+          {showPrices ? (
+            <div class="price-section">
+              <span class="price-label">Investimento</span>
+              <span class="price-value">{formatPrice(product.price)}</span>
+            </div>
+          ) : (
+            <div class="price-section">
+              <span class="price-label">Investimento</span>
+              <span class="price-value consult">Consulte-nos</span>
+            </div>
+          )}
+
+          {optionalItems.length > 0 && (
+            <div class="optional-items">
+              <h4>Variações / Opcionais:</h4>
+              <ul>
+                {optionalItems.map((item: any) => (
+                  <li>
+                    {item.key ? (
+                      <>
+                        <span class="optional-key">{item.key}:</span>
+                        <span class="optional-value">{item.value}</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>{item.name}</span>
+                        {showPrices && item.price && <span class="optional-price">+ {formatPrice(item.price)}</span>}
+                      </>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div class="cta-buttons">
+            <a 
+              href={`https://wa.me/${whatsappNumber}?text=Olá! Tenho interesse no ${encodeURIComponent(product.title)}. Gostaria de mais informações.`}
+              target="_blank"
+              rel="noopener"
+              class="btn-primary"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+              </svg>
+              Solicitar Orçamento
+            </a>
+            <a href="/produtos" class="btn-secondary">
+              Ver Mais Produtos
+            </a>
+          </div>
+
+          <div class="guarantees">
+            <div class="guarantee-item">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+              <span>2 Anos de Garantia</span>
+            </div>
+            <div class="guarantee-item">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="1" y="3" width="22" height="18" rx="2" ry="2"/>
+                <line x1="1" y1="9" x2="23" y2="9"/>
+              </svg>
+              <span>Parcelamento em até 12x</span>
+            </div>
+            <div class="guarantee-item">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+              </svg>
+              <span>Entrega para Todo Brasil</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Product Description -->
+  <section class="product-description">
+    <div class="container">
+      <div class="description-grid">
+        <div class="description-content">
+          <h2>Sobre o Produto</h2>
+          <span class="product-subtitle">{product.title}</span>
+          <p>{product.detailed_description}</p>
+          
+          {product.seo_text && (
+            <div class="seo-text">
+              <p>{product.seo_text}</p>
+            </div>
+          )}
+
+          <div class="testimonial-highlight">
+            <div class="stars">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            </div>
+            <p>Os equipamentos de Pilates preferidos dos instrutores em 2024 e 2025 e recomendados pelas maiores franqueadoras de studios de Pilates do Brasil.</p>
+          </div>
+
+          <div class="inline-cta">
+            <a 
+              href={`https://wa.me/${whatsappNumber}?text=Olá! Quero saber mais sobre o ${encodeURIComponent(product.title.split(' - ')[0])}. Podem me ajudar?`}
+              target="_blank" 
+              rel="noopener" 
+              class="inline-cta-link"
+            >
+              Quer saber mais sobre o {product.title.split(' - ')[0]}? <span>Fale conosco →</span>
+            </a>
+          </div>
+        </div>
+
+        {technicalSpecs.length > 0 ? (
+          <div class="technical-specs">
+            <h2>Dados Técnicos</h2>
+            <ul class="specs-list">
+              {technicalSpecs.map((spec: string) => (
+                <li>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 11 12 14 22 4"/>
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                  </svg>
+                  <span>{spec}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <div class="leadership-card">
+            <div class="leadership-badge">Liderança Global</div>
+            <h3>O Fabricante de Equipamentos de Pilates que Mais Cresce no Mundo</h3>
+            <p>A marca mais admirada entre profissionais de Pilates no Brasil. Com presença em mais de 24 países e mais de 30.000 estúdios equipados, somos referência mundial em qualidade, inovação e suporte completo.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  </section>
+
+  <!-- SEO Section - Por que escolher -->
+  <section class="why-choose">
+    <div class="container">
+      <div class="why-header">
+        <span class="badge-tag">Qualidade Equipilates</span>
+        <h2>Por que escolher o <span class="highlight">{product.title.split(' - ')[0]}</span> da Equipilates</h2>
+        <p>Seu {product.title.split(' - ')[0]} fabricado com a mesma excelência que equipou mais de 30.000 estúdios em 24 países</p>
+      </div>
+      
+      <div class="why-grid">
+        <div class="why-card">
+          <div class="why-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <span class="why-number">01</span>
+          <h3>Fabricação Própria</h3>
+          <p>Fábrica com 5.000m² em Resende-RJ. Controle total de qualidade em cada etapa da produção.</p>
+        </div>
+        
+        <div class="why-card">
+          <div class="why-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
+          <span class="why-number">02</span>
+          <h3>2 Anos de Garantia</h3>
+          <p>Garantia completa de fábrica com assistência técnica especializada e peças de reposição.</p>
+        </div>
+        
+        <div class="why-card">
+          <div class="why-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+          </div>
+          <span class="why-number">03</span>
+          <h3>Entrega Nacional</h3>
+          <p>Enviamos para todo o Brasil com embalagem reforçada e rastreamento completo.</p>
+        </div>
+        
+        <div class="why-card">
+          <div class="why-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10 9 9 9 8 9"/>
+            </svg>
+          </div>
+          <span class="why-number">04</span>
+          <h3>Parcelamento Facilitado</h3>
+          <p>Condições especiais de pagamento em até 12x. Financiamento para studios.</p>
+        </div>
+      </div>
+
+      <div class="stats-bar">
+        <div class="stat-item">
+          <span class="stat-number">5.000m²</span>
+          <span class="stat-label">De Planta Fabril</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">24+</span>
+          <span class="stat-label">Países Atendidos</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">30.000+</span>
+          <span class="stat-label">Studios Equipados</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">18</span>
+          <span class="stat-label">Anos de Mercado</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Social Proof / Testimonials -->
+  <section class="social-proof">
+    <div class="container">
+      <div class="social-header">
+        <span class="social-badge">Depoimentos</span>
+        <h2>A Marca Mais Desejada<br><span class="highlight">Entre Profissionais de Pilates</span></h2>
+        <p>Milhares de estúdios de Pilates confiam na Equipilates para equipar seus espaços com qualidade profissional. Veja o que nossos clientes têm a dizer sobre nossa excelência.</p>
+      </div>
+      
+      <div class="testimonials-grid">
+        <div class="testimonial-card">
+          <div class="testimonial-header">
+            <div class="testimonial-info">
+              <h4>Carla Mendonça</h4>
+              <span>Instrutora Certificada PMA - São Paulo/SP</span>
+            </div>
+            <div class="verified-badge">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+            </div>
+          </div>
+          <p class="testimonial-text">Trabalho com Pilates clássico autêntico e sempre fui bem criteriosa com equipamentos. Quando conheci a linha clássica da Equipilates, me apaixonei. As medidas são fiéis ao método original, a qualidade da construção é impecável. Minha Ladder Barrel é uma obra de arte funcional!</p>
+          <div class="testimonial-footer">
+            <span class="testimonial-date">Há 2 meses</span>
+            <span class="testimonial-likes">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              278
+            </span>
+          </div>
+        </div>
+
+        <div class="testimonial-card">
+          <div class="testimonial-header">
+            <div class="testimonial-info">
+              <h4>Amanda Costa</h4>
+              <span>Studio Essence Pilates - Porto Alegre/RS</span>
+            </div>
+            <div class="verified-badge">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+            </div>
+          </div>
+          <p class="testimonial-text">Montei um estúdio boutique e queria equipamentos que fossem duráveis mas também bonitos. A Equipilates entregou exatamente isso. O Reformer contemporâneo tem um design moderno, os ajustes são rápidos, e a madeira com o alumínio fica elegante.</p>
+          <div class="testimonial-footer">
+            <span class="testimonial-date">Há 1 semana</span>
+            <span class="testimonial-likes">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              156
+            </span>
+          </div>
+        </div>
+
+        <div class="testimonial-card">
+          <div class="testimonial-header">
+            <div class="testimonial-info">
+              <h4>Renata Oliveira</h4>
+              <span>Stúdio Vitalità - Brasília/DF</span>
+            </div>
+            <div class="verified-badge">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+            </div>
+          </div>
+          <p class="testimonial-text">Depois de 4 anos com equipamentos de outra marca que viviam dando problema, troquei tudo por Equipilates. Que diferença! Além da qualidade absurda, o parcelamento facilitou muito. E olha, uso MUITO - tenho aulas das 6h às 21h. Os equipamentos aguentam firme!</p>
+          <div class="testimonial-footer">
+            <span class="testimonial-date">Há 4 semanas</span>
+            <span class="testimonial-likes">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              421
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="google-rating">
+        <div class="rating-content">
+          <div class="rating-stars">
+            <span class="rating-number">5.0</span>
+            <div class="stars-row">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            </div>
+            <span class="rating-count">(2.892 avaliações)</span>
+          </div>
+          <p class="rating-quote">"Melhor fabricante de equipamentos de Pilates do Brasil. Qualidade incomparável e atendimento excepcional."</p>
+          <div class="rating-source">
+            <svg class="google-icon" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            <span>Avaliações do Google</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- CTA Especialista -->
+  <section class="cta-especialista">
+    <div class="container">
+      <div class="cta-content">
+        <div class="cta-text">
+          <h2>Fale com um <span class="highlight">Especialista</span></h2>
+          <p>Tire suas dúvidas sobre o {product.title.split(' - ')[0]} e receba uma consultoria personalizada para montar seu estúdio de Pilates.</p>
+        </div>
+        <a 
+          href={`https://wa.me/${whatsappNumber}?text=Olá! Gostaria de mais informações sobre o ${encodeURIComponent(product.title)}. Podem me ajudar?`}
+          target="_blank" 
+          rel="noopener" 
+          class="cta-button"
+        >
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+          </svg>
+          Chamar Especialista no WhatsApp
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Related Products -->
+  {relatedProducts && relatedProducts.length > 0 && (
+    <section class="related-products">
+      <div class="container">
+        <h2>Produtos Relacionados</h2>
+        <div class="related-grid">
+          {relatedProducts.map(related => (
+            <a href={`/produtos/${related.slug}`} class="related-card">
+              <div class="related-image">
+                <img 
+                  src={getProductImagePath(related.slug, categorySlug)}
+                  alt={related.title}
+                  loading="lazy"
+                  onerror="this.src='/images/logo-equipilates.webp'"
+                />
+              </div>
+              <div class="related-info">
+                <h4>{related.title.split(' - ')[0]}</h4>
+                {showPrices ? (
+                  <span class="related-price">{formatPrice(related.price)}</span>
+                ) : (
+                  <span class="related-price consult">Consulte</span>
+                )}
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+</BaseLayout>
+
+<style>
+  /* Breadcrumb */
+  .breadcrumb {
+    background: var(--primary);
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .breadcrumb .container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    flex-wrap: wrap;
+  }
+
+  .breadcrumb a {
+    color: var(--text-muted);
+  }
+
+  .breadcrumb a:hover {
+    color: var(--caramel);
+  }
+
+  .breadcrumb span {
+    color: var(--text-muted);
+  }
+
+  .breadcrumb .current {
+    color: var(--caramel);
+    font-weight: 500;
+  }
+
+  /* Product Detail */
+  .product-detail {
+    padding: 60px 0;
+  }
+
+  .product-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: start;
+  }
+
+  /* Gallery */
+  .product-gallery {
+    position: relative;
+  }
+
+  .main-image {
+    aspect-ratio: 4/3;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--primary);
+    border: 1px solid var(--border);
+  }
+
+  .main-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .image-badge {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+  }
+
+  .image-badge span {
+    background: rgba(0, 0, 0, 0.8);
+    color: var(--caramel);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .image-thumbnails {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .thumbnail {
+    width: 80px;
+    height: 60px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid var(--border);
+    cursor: pointer;
+    padding: 0;
+    background: none;
+    transition: all 0.3s ease;
+  }
+
+  .thumbnail:hover {
+    border-color: var(--caramel);
+  }
+
+  .thumbnail.active {
+    border-color: var(--caramel);
+    box-shadow: 0 0 0 2px rgba(212, 165, 116, 0.3);
+  }
+
+  .thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Product Info */
+  .product-info h1 {
+    font-size: clamp(1.5rem, 3vw, 2.2rem);
+    margin-bottom: 16px;
+    line-height: 1.3;
+  }
+
+  .short-desc {
+    color: var(--text-muted);
+    font-size: 1.05rem;
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+
+  .price-section {
+    background: var(--primary);
+    padding: 20px 24px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+  }
+
+  .price-label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+
+  .price-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--caramel);
+  }
+
+  .price-value.consult {
+    font-size: 1.5rem;
+    font-style: italic;
+  }
+
+  .related-price.consult {
+    font-style: italic;
+  }
+
+  .optional-items {
+    background: var(--bg-card);
+    padding: 16px 20px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 24px;
+    border: 1px solid var(--border);
+  }
+
+  .optional-items h4 {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .optional-items ul {
+    list-style: none;
+  }
+
+  .optional-items li {
+    display: flex;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .optional-items li:last-child {
+    border-bottom: none;
+  }
+
+  .optional-key {
+    color: var(--text-muted);
+  }
+
+  .optional-value {
+    color: var(--caramel);
+    font-weight: 500;
+  }
+
+  .optional-price {
+    color: var(--caramel);
+    font-weight: 600;
+  }
+
+  .cta-buttons {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .btn-primary {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: #25D366;
+    color: white;
+    padding: 16px 24px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 1rem;
+    transition: var(--transition);
+  }
+
+  .btn-primary:hover {
+    background: #128C7E;
+    transform: translateY(-2px);
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    color: var(--text);
+    padding: 16px 24px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 1rem;
+    border: 1px solid var(--border);
+    transition: var(--transition);
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--caramel);
+    color: var(--caramel);
+  }
+
+  .guarantees {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .guarantee-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  .guarantee-item svg {
+    color: var(--caramel);
+    flex-shrink: 0;
+  }
+
+  /* Description */
+  .product-description {
+    padding: 60px 0;
+    background: #ececec;
+  }
+
+  .description-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 60px;
+  }
+
+  .description-content h2,
+  .technical-specs h2 {
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+    color: #1a1a1a;
+  }
+
+  .product-subtitle {
+    display: block;
+    font-size: 0.95rem;
+    color: #888;
+    margin-bottom: 20px;
+  }
+
+  .description-content p {
+    color: #444;
+    font-size: 1.05rem;
+    line-height: 1.8;
+    margin-bottom: 20px;
+  }
+
+  .seo-text {
+    padding-top: 20px;
+    border-top: 1px solid #ddd;
+  }
+
+  .seo-text p {
+    font-size: 0.95rem;
+    font-style: italic;
+    color: #666;
+  }
+
+  .testimonial-highlight {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid #ddd;
+  }
+
+  .testimonial-highlight .stars {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 12px;
+  }
+
+  .testimonial-highlight .stars svg {
+    width: 20px;
+    height: 20px;
+    color: var(--caramel);
+  }
+
+  .testimonial-highlight p {
+    font-size: 0.9rem;
+    color: #555;
+    line-height: 1.6;
+    font-weight: 500;
+  }
+
+  .inline-cta {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #ddd;
+  }
+
+  .inline-cta-link {
+    font-size: 0.95rem;
+    color: #555;
+    transition: color 0.2s;
+  }
+
+  .inline-cta-link:hover {
+    color: #333;
+  }
+
+  .inline-cta-link span {
+    color: var(--caramel);
+    font-weight: 600;
+  }
+
+  .inline-cta-link:hover span {
+    text-decoration: underline;
+  }
+
+  .specs-list {
+    list-style: none;
+  }
+
+  .specs-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #ddd;
+    color: var(--text-muted);
+  }
+
+  .specs-list li:last-child {
+    border-bottom: none;
+  }
+
+  .specs-list li span {
+    color: #444;
+  }
+
+  .specs-list svg {
+    color: var(--caramel);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* Leadership Card (fallback when no specs) */
+  .leadership-card {
+    background: linear-gradient(145deg, #1a1a1a 0%, #111 100%);
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+    height: fit-content;
+    align-self: flex-start;
+  }
+
+  .leadership-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--caramel) 0%, var(--caramel-dark) 100%);
+  }
+
+  .leadership-badge {
+    display: inline-block;
+    background: var(--caramel);
+    border: none;
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 20px;
+  }
+
+  .leadership-card h3 {
+    font-size: 1.25rem;
+    line-height: 1.4;
+    margin-bottom: 16px;
+    color: #fff;
+  }
+
+  .leadership-card p {
+    color: #aaa;
+    font-size: 0.95rem;
+    line-height: 1.7;
+  }
+
+  /* Why Choose Section */
+  .why-choose {
+    padding: 80px 0;
+    background: #111;
+  }
+
+  .why-header {
+    text-align: center;
+    margin-bottom: 50px;
+  }
+
+  .badge-tag {
+    display: inline-block;
+    background: transparent;
+    border: 1px solid var(--caramel);
+    color: var(--caramel);
+    padding: 8px 20px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+  }
+
+  .why-header h2 {
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    margin-bottom: 16px;
+  }
+
+  .why-header .highlight {
+    color: var(--caramel);
+  }
+
+  .why-header p {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .why-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 30px;
+    margin-bottom: 60px;
+  }
+
+  .why-card {
+    text-align: center;
+    padding: 30px 20px;
+  }
+
+  .why-icon {
+    width: 70px;
+    height: 70px;
+    background: rgba(212, 165, 116, 0.1);
+    border: 1px solid var(--caramel);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+  }
+
+  .why-icon svg {
+    width: 32px;
+    height: 32px;
+    color: var(--caramel);
+  }
+
+  .why-number {
+    display: block;
+    color: var(--caramel);
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .why-card h3 {
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+  }
+
+  .why-card p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 30px;
+    padding: 40px 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .stat-item {
+    text-align: center;
+  }
+
+  .stat-number {
+    display: block;
+    font-family: 'Sora', sans-serif;
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    font-weight: 700;
+    color: var(--caramel);
+    font-style: italic;
+    margin-bottom: 8px;
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* Social Proof Section */
+  .social-proof {
+    padding: 80px 0;
+    background: #ececec;
+  }
+
+  .social-header {
+    text-align: center;
+    margin-bottom: 50px;
+  }
+
+  .social-badge {
+    display: inline-block;
+    color: var(--caramel);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+  }
+
+  .social-header h2 {
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    color: #1a1a1a;
+    margin-bottom: 16px;
+    line-height: 1.2;
+  }
+
+  .social-header .highlight {
+    color: var(--caramel);
+  }
+
+  .social-header p {
+    color: #666;
+    font-size: 1.05rem;
+    max-width: 650px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  .testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .testimonial-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 28px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .testimonial-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+
+  .testimonial-info h4 {
+    font-size: 1rem;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+  }
+
+  .testimonial-info span {
+    font-size: 0.8rem;
+    color: #888;
+  }
+
+  .verified-badge {
+    width: 24px;
+    height: 24px;
+    background: var(--caramel);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .verified-badge svg {
+    width: 14px;
+    height: 14px;
+    color: #fff;
+  }
+
+  .testimonial-text {
+    color: #444;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    flex-grow: 1;
+    margin-bottom: 20px;
+  }
+
+  .testimonial-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 16px;
+    border-top: 1px solid #eee;
+  }
+
+  .testimonial-date {
+    font-size: 0.8rem;
+    color: #999;
+  }
+
+  .testimonial-likes {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: #e74c3c;
+  }
+
+  .testimonial-likes svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Google Rating */
+  .google-rating {
+    margin-top: 50px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .rating-content {
+    text-align: center;
+    max-width: 500px;
+  }
+
+  .rating-stars {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .rating-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a1a1a;
+  }
+
+  .stars-row {
+    display: flex;
+    gap: 2px;
+  }
+
+  .stars-row svg {
+    width: 22px;
+    height: 22px;
+    color: #FBBC05;
+  }
+
+  .rating-count {
+    font-size: 0.9rem;
+    color: #666;
+  }
+
+  .rating-quote {
+    font-size: 1rem;
+    color: #444;
+    font-style: italic;
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+
+  .rating-source {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #666;
+    font-size: 0.85rem;
+  }
+
+  .google-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* CTA Especialista */
+  .cta-especialista {
+    padding: 80px 0;
+    background: linear-gradient(135deg, var(--caramel) 0%, var(--caramel-dark) 100%);
+  }
+
+  .cta-especialista .cta-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 40px;
+  }
+
+  .cta-especialista .cta-text {
+    flex: 1;
+  }
+
+  .cta-especialista h2 {
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    color: var(--bg-dark);
+    margin-bottom: 12px;
+  }
+
+  .cta-especialista .highlight {
+    color: #fff;
+  }
+
+  .cta-especialista p {
+    color: rgba(0, 0, 0, 0.7);
+    font-size: 1.1rem;
+    line-height: 1.6;
+    max-width: 500px;
+  }
+
+  .cta-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg-dark);
+    color: #fff;
+    padding: 18px 32px;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+  }
+
+  .cta-button:hover {
+    background: #000;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  }
+
+  .cta-button svg {
+    flex-shrink: 0;
+  }
+
+  /* Related Products */
+  .related-products {
+    padding: 60px 0;
+  }
+
+  .related-products h2 {
+    font-size: 1.8rem;
+    margin-bottom: 30px;
+    text-align: center;
+  }
+
+  .related-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+
+  .related-card {
+    background: var(--primary);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    transition: var(--transition);
+  }
+
+  .related-card:hover {
+    border-color: var(--caramel);
+    transform: translateY(-3px);
+  }
+
+  .related-image {
+    aspect-ratio: 4/3;
+    overflow: hidden;
+    background: var(--bg-card);
+  }
+
+  .related-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .related-card:hover .related-image img {
+    transform: scale(1.05);
+  }
+
+  .related-info {
+    padding: 16px;
+  }
+
+  .related-info h4 {
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+
+  .related-price {
+    color: var(--caramel);
+    font-weight: 600;
+    font-size: 1rem;
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .product-grid {
+      gap: 40px;
+    }
+
+    .description-grid {
+      gap: 40px;
+    }
+
+    .testimonials-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .testimonials-grid .testimonial-card:last-child {
+      grid-column: 1 / -1;
+      max-width: 50%;
+      margin: 0 auto;
+    }
+
+    .related-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .product-grid {
+      grid-template-columns: 1fr;
+      gap: 30px;
+    }
+
+    .description-grid {
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+
+    .cta-buttons {
+      flex-direction: column;
+    }
+
+    .related-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .product-detail,
+    .product-description,
+    .related-products,
+    .why-choose,
+    .social-proof,
+    .cta-especialista {
+      padding: 40px 0;
+    }
+
+    .cta-especialista .cta-content {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .cta-especialista p {
+      margin: 0 auto 20px;
+    }
+
+    .cta-button {
+      padding: 16px 28px;
+      font-size: 1rem;
+    }
+
+    .testimonials-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .testimonial-card {
+      padding: 20px;
+    }
+
+    .why-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .stats-bar {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .why-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .stats-bar {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .related-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

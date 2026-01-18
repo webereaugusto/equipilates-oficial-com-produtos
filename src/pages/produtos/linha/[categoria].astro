@@ -1,0 +1,711 @@
+---
+export const prerender = false;
+
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { supabase } from '../../../lib/supabase';
+import { getProductImagePath } from '../../../lib/imageMap';
+
+const { categoria } = Astro.params;
+
+// Buscar categoria atual
+const { data: category } = await supabase
+  .from('categories')
+  .select('*')
+  .eq('slug', categoria)
+  .single();
+
+if (!category) {
+  return Astro.redirect('/produtos');
+}
+
+// Buscar todas as categorias para filtros
+const { data: allCategories } = await supabase
+  .from('categories')
+  .select('*')
+  .order('name');
+
+// Buscar produtos da categoria
+const { data: products } = await supabase
+  .from('products')
+  .select(`
+    *,
+    category:categories(name, slug)
+  `)
+  .eq('category_id', category.id)
+  .eq('is_active', true)
+  .order('order_index');
+
+// Buscar configuração de exibição de preços
+const { data: priceSettings } = await supabase
+  .from('site_settings')
+  .select('value')
+  .eq('key', 'show_prices')
+  .single();
+
+const showPrices = priceSettings?.value !== 'false';
+
+// Buscar número de WhatsApp
+const { data: whatsappSettings } = await supabase
+  .from('site_settings')
+  .select('value')
+  .eq('key', 'whatsapp_number')
+  .single();
+
+const whatsappNumber = whatsappSettings?.value || '5521967329318';
+
+const formatPrice = (price: number) => {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(price);
+};
+
+const isClassica = category.slug === 'linha-classica';
+const isAcessorios = category.slug === 'acessorios';
+
+// SEO dinâmico por categoria
+const seoData = {
+  'linha-classica': {
+    title: 'Linha Clássica - Equipamentos de Pilates em Alumínio Premium',
+    description: 'Equipamentos de Pilates Linha Clássica em Alumínio Premium. Reformer, Cadillac, Guilhotina, Chair, Barrel e mais. Design autêntico baseado nas especificações originais de Joseph Pilates. Fábrica própria com 2 anos de garantia.',
+    keywords: 'equipamentos pilates alumínio, linha clássica pilates, reformer alumínio, cadillac alumínio, aparelhos pilates clássico, equipilates linha clássica'
+  },
+  'linha-contemporanea': {
+    title: 'Linha Contemporânea - Equipamentos de Pilates em Madeira Maciça',
+    description: 'Equipamentos de Pilates Linha Contemporânea em Madeira Maciça certificada. Reformer, Cadillac, Step Chair, Ladder Barrel e mais. Sistema Click Fácil exclusivo. Estrutura em aço inox 304. Fábrica própria com 2 anos de garantia.',
+    keywords: 'equipamentos pilates madeira, linha contemporânea pilates, reformer madeira, cadillac madeira, aparelhos pilates contemporâneo, equipilates linha contemporânea'
+  },
+  'acessorios': {
+    title: 'Acessórios para Pilates - Complementos para seu Estúdio',
+    description: 'Acessórios para Pilates profissionais. Kuna Board, 2x4 Two by Four, Bastão de Alumínio, Spacer Box e mais. Complementos essenciais para seu estúdio de Pilates. Qualidade premium Equipilates.',
+    keywords: 'acessórios pilates, acessórios para pilates, kuna board, two by four pilates, complementos pilates, equipamentos pilates acessórios'
+  }
+};
+
+const currentSeo = seoData[category.slug as keyof typeof seoData] || {
+  title: `${category.name} - Equipamentos e Acessórios para Pilates`,
+  description: category.description || `Conheça os produtos da ${category.name} Equipilates. Qualidade premium com 2 anos de garantia.`,
+  keywords: `${category.name.toLowerCase()}, equipamentos pilates, acessórios pilates, equipilates`
+};
+---
+
+<BaseLayout 
+  title={currentSeo.title}
+  description={currentSeo.description}
+  keywords={currentSeo.keywords}
+>
+  <!-- Hero Section -->
+  <section class="hero" class:list={[{ 'hero-classica': isClassica, 'hero-contemporanea': !isClassica && !isAcessorios, 'hero-acessorios': isAcessorios }]}>
+    <div class="container">
+      <div class="hero-badge">{isClassica ? 'Alumínio Premium' : isAcessorios ? 'Complementos Essenciais' : 'Madeira Maciça'}</div>
+      <h1>{category.name}</h1>
+      <p>{category.description}</p>
+      <div class="hero-stats">
+        <div class="stat">
+          <span class="stat-number">{products?.length || 0}</span>
+          <span class="stat-label">Produtos</span>
+        </div>
+        <div class="stat">
+          <span class="stat-number">2</span>
+          <span class="stat-label">Anos Garantia</span>
+        </div>
+        <div class="stat">
+          <span class="stat-number">24+</span>
+          <span class="stat-label">Países</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Filtros por Categoria -->
+  <section class="filters">
+    <div class="container">
+      <div class="filter-buttons">
+        <a href="/produtos" class="filter-btn">Todos</a>
+        {allCategories?.map(cat => (
+          <a 
+            href={`/produtos/linha/${cat.slug}`} 
+            class:list={['filter-btn', { active: cat.slug === categoria }]}
+          >
+            {cat.name}
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Products Grid -->
+  <section class="products-section">
+    <div class="container">
+      {products && products.length > 0 ? (
+        <div class="products-grid">
+          {products.map((product, index) => (
+            <a 
+              href={`/produtos/${product.slug}`} 
+              class="product-card"
+              style={`animation-delay: ${index * 0.1}s`}
+            >
+              <div class="product-image">
+                <img 
+                  src={getProductImagePath(product.slug, category.slug)}
+                  alt={product.title}
+                  loading={index < 4 ? 'eager' : 'lazy'}
+                  onerror="this.src='/images/logo-equipilates.webp'"
+                />
+                <!-- CTA Overlay na imagem -->
+                <div class="cta-overlay">
+                  <span class="cta-btn">Ver Produto</span>
+                </div>
+              </div>
+              <div class="product-info">
+                <h3>{product.title.split(' - ')[0]}</h3>
+                <p class="product-desc">{product.short_description}</p>
+                <div class="product-footer">
+                  {showPrices ? (
+                    <span class="product-price">{formatPrice(product.price)}</span>
+                  ) : (
+                    <span class="product-price consult">Consulte</span>
+                  )}
+                  <span class="arrow">→</span>
+                </div>
+              </div>
+            </a>
+          ))}
+        </div>
+      ) : (
+        <div class="no-products">
+          <h3>Nenhum produto encontrado</h3>
+          <p>Estamos atualizando nosso catálogo. Volte em breve!</p>
+          <a href="/produtos" class="btn-back">Ver Todos os Produtos</a>
+        </div>
+      )}
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features-section">
+    <div class="container">
+      <h2>Por que escolher a {category.name}?</h2>
+      <div class="features-grid">
+        {isClassica ? (
+          <>
+            <div class="feature-card">
+              <div class="feature-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+              </div>
+              <h3>Alumínio Premium</h3>
+              <p>Estrutura integralmente em alumínio, garantindo leveza, durabilidade e resistência à corrosão.</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32"/>
+                </svg>
+              </div>
+              <h3>Design Autêntico</h3>
+              <p>Baseado nas especificações originais de Joseph Pilates, mantendo a tradição do método clássico.</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+              </div>
+              <h3>Molas Niqueladas</h3>
+              <p>Molas em aço carbono niqueladas, oferecendo resistência precisa e longa vida útil.</p>
+            </div>
+          </>
+        ) : (
+          <>
+            <div class="feature-card">
+              <div class="feature-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+              </div>
+              <h3>Madeira Maciça Certificada</h3>
+              <p>Fabricado em madeira maciça com certificação ambiental, garantindo qualidade e sustentabilidade.</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="3" y1="9" x2="21" y2="9"/>
+                  <line x1="9" y1="21" x2="9" y2="9"/>
+                </svg>
+              </div>
+              <h3>Sistema Click Fácil</h3>
+              <p>Exclusividade Equipilates: regulagem rápida e prática das molas sem necessidade de ferramentas.</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="3"/>
+                  <path d="M12 1v6m0 6v10M4.22 4.22l4.24 4.24m7.08 7.08l4.24 4.24M1 12h6m6 0h10M4.22 19.78l4.24-4.24m7.08-7.08l4.24-4.24"/>
+                </svg>
+              </div>
+              <h3>Aço Inox 304</h3>
+              <p>Estrutura em aço inox 304 polido com 2.0mm de espessura, garantindo máxima estabilidade.</p>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="container">
+      <div class="cta-content">
+        <h2>Monte Seu Estúdio Completo</h2>
+        <p>Receba uma consultoria gratuita e personalizada para montar o estúdio ideal para suas necessidades.</p>
+        <a href={`https://wa.me/${whatsappNumber}?text=Olá! Gostaria de uma consultoria para montar meu estúdio de Pilates.`} target="_blank" rel="noopener" class="btn-cta">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+          </svg>
+          Solicitar Consultoria Gratuita
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* Hero */
+  .hero {
+    padding: 80px 0 60px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-classica {
+    background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 50%, #0a0a0a 100%);
+  }
+
+  .hero-contemporanea {
+    background: linear-gradient(135deg, #3d2f1f 0%, #2a2217 50%, #1a1a1a 100%);
+  }
+
+  .hero-acessorios {
+    background: linear-gradient(135deg, #2d2a25 0%, #1f1d1a 50%, #0a0a0a 100%);
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('/images/bg/studio-rodape.webp') center/cover no-repeat;
+    opacity: 0.1;
+  }
+
+  .hero .container {
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    background: var(--caramel);
+    color: var(--bg-dark);
+    padding: 8px 20px;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    margin-bottom: 16px;
+  }
+
+  .hero p {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    max-width: 700px;
+    margin: 0 auto 30px;
+    line-height: 1.7;
+  }
+
+  .hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 60px;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat-number {
+    display: block;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--caramel);
+    font-family: 'Sora', sans-serif;
+  }
+
+  .stat-label {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+  }
+
+  /* Filters */
+  .filters {
+    padding: 30px 0;
+    background: var(--primary);
+    position: sticky;
+    top: 80px;
+    z-index: 100;
+  }
+
+  .filter-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .filter-btn {
+    padding: 10px 24px;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    background: var(--bg-card);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    transition: var(--transition);
+  }
+
+  .filter-btn:hover,
+  .filter-btn.active {
+    background: var(--caramel);
+    color: var(--bg-dark);
+    border-color: var(--caramel);
+  }
+
+  /* Products */
+  .products-section {
+    padding: 60px 0;
+  }
+
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 30px;
+  }
+
+  .product-card {
+    position: relative;
+    background: var(--primary);
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    animation: fadeInUp 0.6s ease forwards;
+    opacity: 0;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .product-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--caramel);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+  }
+
+
+  .product-image {
+    position: relative;
+    aspect-ratio: 4/3;
+    overflow: hidden;
+    background: var(--bg-card);
+  }
+
+  .product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+
+  .product-card:hover .product-image img {
+    transform: scale(1.05);
+  }
+
+  /* CTA Overlay - na imagem */
+  .cta-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 2;
+  }
+
+  .product-card:hover .cta-overlay {
+    opacity: 1;
+  }
+
+  .cta-btn {
+    padding: 12px 28px;
+    background: transparent;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transform: translateY(10px);
+    opacity: 0;
+    transition: all 0.3s ease;
+  }
+
+  .product-card:hover .cta-btn {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .product-info {
+    padding: 24px;
+  }
+
+  .product-info h3 {
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+
+  .product-desc {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .product-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .product-price {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--caramel);
+  }
+
+  .product-price.consult {
+    font-size: 1rem;
+    font-style: italic;
+  }
+
+  .arrow {
+    font-size: 1.5rem;
+    color: var(--text-muted);
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .product-card:hover .arrow {
+    color: var(--caramel);
+    transform: translateX(8px);
+  }
+
+  /* No Products */
+  .no-products {
+    text-align: center;
+    padding: 80px 20px;
+  }
+
+  .no-products h3 {
+    font-size: 1.5rem;
+    margin-bottom: 12px;
+  }
+
+  .no-products p {
+    color: var(--text-muted);
+    margin-bottom: 24px;
+  }
+
+  .btn-back {
+    display: inline-block;
+    background: var(--caramel);
+    color: var(--bg-dark);
+    padding: 14px 28px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+  }
+
+  /* Features */
+  .features-section {
+    padding: 80px 0;
+    background: var(--primary);
+  }
+
+  .features-section h2 {
+    font-size: 2rem;
+    text-align: center;
+    margin-bottom: 50px;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+  }
+
+  .feature-card {
+    text-align: center;
+    padding: 40px 30px;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    transition: var(--transition);
+  }
+
+  .feature-card:hover {
+    border-color: var(--caramel);
+    transform: translateY(-5px);
+  }
+
+  .feature-icon {
+    width: 80px;
+    height: 80px;
+    background: rgba(212, 165, 116, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+  }
+
+  .feature-icon svg {
+    color: var(--caramel);
+  }
+
+  .feature-card h3 {
+    font-size: 1.2rem;
+    margin-bottom: 12px;
+  }
+
+  .feature-card p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  /* CTA */
+  .cta-section {
+    padding: 80px 0;
+    background: linear-gradient(135deg, var(--caramel) 0%, var(--caramel-dark) 100%);
+  }
+
+  .cta-content {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .cta-content h2 {
+    font-size: 2rem;
+    color: var(--bg-dark);
+    margin-bottom: 12px;
+  }
+
+  .cta-content p {
+    color: rgba(0, 0, 0, 0.7);
+    font-size: 1.1rem;
+    margin-bottom: 24px;
+  }
+
+  .btn-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-dark);
+    color: white;
+    padding: 16px 32px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 1rem;
+    transition: var(--transition);
+  }
+
+  .btn-cta:hover {
+    background: var(--primary);
+    transform: translateY(-2px);
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .features-grid {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .hero {
+      padding: 60px 0 40px;
+    }
+
+    .hero-stats {
+      gap: 30px;
+    }
+
+    .stat-number {
+      font-size: 2rem;
+    }
+
+    .products-grid {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    .filter-buttons {
+      gap: 8px;
+    }
+
+    .filter-btn {
+      padding: 8px 16px;
+      font-size: 0.85rem;
+    }
+
+    .features-section,
+    .cta-section {
+      padding: 60px 0;
+    }
+
+    .cta-content h2 {
+      font-size: 1.5rem;
+    }
+  }
+</style>
