@@ -1,0 +1,518 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="Usuários">
+  <div class="usuarios-page">
+    <header class="page-header">
+      <div>
+        <h1>Usuários</h1>
+        <p>Gerencie os usuários administradores do sistema</p>
+      </div>
+      <a href="/admin/usuarios/novo" class="btn-novo">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="16"/>
+          <line x1="8" y1="12" x2="16" y2="12"/>
+        </svg>
+        Novo Usuário
+      </a>
+    </header>
+
+    <!-- Loading -->
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+      <p>Carregando usuários...</p>
+    </div>
+
+    <!-- Error -->
+    <div id="error" class="error-message" style="display: none;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="15" y1="9" x2="9" y2="15"/>
+        <line x1="9" y1="9" x2="15" y2="15"/>
+      </svg>
+      <p id="errorText">Erro ao carregar usuários</p>
+    </div>
+
+    <!-- Users Table -->
+    <div id="usersContainer" class="table-container" style="display: none;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Criado em</th>
+            <th>Último acesso</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="usersTableBody">
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="empty-state" style="display: none;">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      <p>Nenhum usuário cadastrado</p>
+      <a href="/admin/usuarios/novo" class="btn-criar">Criar primeiro usuário</a>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal" style="display: none;">
+      <div class="modal-content">
+        <h3>Confirmar Exclusão</h3>
+        <p>Tem certeza que deseja excluir o usuário <strong id="deleteUserEmail"></strong>?</p>
+        <p class="warning">Esta ação não pode ser desfeita.</p>
+        <div class="modal-actions">
+          <button id="cancelDelete" class="btn-cancel">Cancelar</button>
+          <button id="confirmDelete" class="btn-delete">Excluir</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<style>
+  .usuarios-page {
+    max-width: 1200px;
+  }
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 32px;
+  }
+
+  .page-header h1 {
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+  }
+
+  .page-header p {
+    color: var(--text-muted);
+  }
+
+  .btn-novo {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--caramel);
+    color: var(--bg-dark);
+    padding: 12px 20px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+
+  .btn-novo:hover {
+    background: var(--caramel-dark);
+  }
+
+  .loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px;
+    gap: 16px;
+  }
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--border);
+    border-top-color: var(--caramel);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .loading p {
+    color: var(--text-muted);
+  }
+
+  .error-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px;
+    gap: 16px;
+    color: var(--error);
+  }
+
+  .table-container {
+    background: var(--primary);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .data-table th {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: var(--bg-card);
+  }
+
+  .data-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .data-table tr:hover td {
+    background: var(--bg-card);
+  }
+
+  .user-email {
+    font-weight: 500;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+
+  .status-badge.confirmed {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+  }
+
+  .status-badge.pending {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+  }
+
+  .actions-cell {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: var(--bg-card);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: none;
+  }
+
+  .btn-action:hover {
+    background: var(--caramel);
+    color: var(--bg-dark);
+  }
+
+  .btn-action.delete:hover {
+    background: var(--error);
+    color: white;
+  }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    gap: 16px;
+    background: var(--primary);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+  }
+
+  .empty-state svg {
+    color: var(--text-muted);
+  }
+
+  .empty-state p {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+  }
+
+  .btn-criar {
+    background: var(--caramel);
+    color: var(--bg-dark);
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    margin-top: 8px;
+  }
+
+  .btn-criar:hover {
+    background: var(--caramel-dark);
+  }
+
+  /* Modal */
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  .modal-content {
+    background: var(--primary);
+    padding: 32px;
+    border-radius: var(--radius);
+    max-width: 400px;
+    width: 90%;
+    border: 1px solid var(--border);
+  }
+
+  .modal-content h3 {
+    margin-bottom: 16px;
+    font-size: 1.2rem;
+  }
+
+  .modal-content p {
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .modal-content .warning {
+    color: var(--error);
+    font-size: 0.9rem;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    justify-content: flex-end;
+  }
+
+  .btn-cancel {
+    background: var(--bg-card);
+    color: var(--text);
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--border);
+  }
+
+  .btn-cancel:hover {
+    background: var(--border);
+  }
+
+  .btn-delete {
+    background: var(--error);
+    color: white;
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+  }
+
+  .btn-delete:hover {
+    background: #dc2626;
+  }
+
+  .btn-delete:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 768px) {
+    .page-header {
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .table-container {
+      overflow-x: auto;
+    }
+
+    .data-table {
+      min-width: 600px;
+    }
+  }
+</style>
+
+<script>
+  // Estado
+  let users: any[] = [];
+  let userToDelete: any = null;
+
+  // Elementos
+  const loading = document.getElementById('loading');
+  const error = document.getElementById('error');
+  const errorText = document.getElementById('errorText');
+  const usersContainer = document.getElementById('usersContainer');
+  const usersTableBody = document.getElementById('usersTableBody');
+  const emptyState = document.getElementById('emptyState');
+  const deleteModal = document.getElementById('deleteModal');
+  const deleteUserEmail = document.getElementById('deleteUserEmail');
+  const cancelDelete = document.getElementById('cancelDelete');
+  const confirmDelete = document.getElementById('confirmDelete');
+
+  // Formatar data
+  function formatDate(dateString: string | null) {
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  // Carregar usuários
+  async function loadUsers() {
+    try {
+      loading!.style.display = 'flex';
+      error!.style.display = 'none';
+      usersContainer!.style.display = 'none';
+      emptyState!.style.display = 'none';
+
+      const response = await fetch('/api/usuarios');
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao carregar usuários');
+      }
+
+      users = data.users || [];
+      renderUsers();
+    } catch (err: any) {
+      loading!.style.display = 'none';
+      error!.style.display = 'flex';
+      errorText!.textContent = err.message;
+    }
+  }
+
+  // Renderizar usuários
+  function renderUsers() {
+    loading!.style.display = 'none';
+
+    if (users.length === 0) {
+      emptyState!.style.display = 'flex';
+      return;
+    }
+
+    usersContainer!.style.display = 'block';
+    usersTableBody!.innerHTML = users.map(user => `
+      <tr>
+        <td><span class="user-email">${user.email}</span></td>
+        <td>${formatDate(user.created_at)}</td>
+        <td>${formatDate(user.last_sign_in_at)}</td>
+        <td>
+          <span class="status-badge ${user.email_confirmed_at ? 'confirmed' : 'pending'}">
+            ${user.email_confirmed_at ? 'Confirmado' : 'Pendente'}
+          </span>
+        </td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn-action delete" data-id="${user.id}" data-email="${user.email}" title="Excluir">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                <line x1="10" y1="11" x2="10" y2="17"/>
+                <line x1="14" y1="11" x2="14" y2="17"/>
+              </svg>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+
+    // Adicionar event listeners para botões de excluir
+    document.querySelectorAll('.btn-action.delete').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const target = e.currentTarget as HTMLElement;
+        userToDelete = {
+          id: target.dataset.id,
+          email: target.dataset.email
+        };
+        deleteUserEmail!.textContent = userToDelete.email;
+        deleteModal!.style.display = 'flex';
+      });
+    });
+  }
+
+  // Cancelar exclusão
+  cancelDelete?.addEventListener('click', () => {
+    deleteModal!.style.display = 'none';
+    userToDelete = null;
+  });
+
+  // Confirmar exclusão
+  confirmDelete?.addEventListener('click', async () => {
+    if (!userToDelete) return;
+
+    const btn = confirmDelete as HTMLButtonElement;
+    btn.disabled = true;
+    btn.textContent = 'Excluindo...';
+
+    try {
+      const response = await fetch(`/api/usuarios/${userToDelete.id}`, {
+        method: 'DELETE'
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao excluir usuário');
+      }
+
+      deleteModal!.style.display = 'none';
+      userToDelete = null;
+      loadUsers(); // Recarregar lista
+    } catch (err: any) {
+      alert('Erro ao excluir: ' + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Excluir';
+    }
+  });
+
+  // Fechar modal ao clicar fora
+  deleteModal?.addEventListener('click', (e) => {
+    if (e.target === deleteModal) {
+      deleteModal.style.display = 'none';
+      userToDelete = null;
+    }
+  });
+
+  // Carregar ao iniciar
+  loadUsers();
+</script>
