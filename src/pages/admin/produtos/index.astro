@@ -1,8 +1,11 @@
 ---
 import AdminLayout from '../../../layouts/AdminLayout.astro';
-import { supabase } from '../../../lib/supabase';
+import { getServiceSupabase } from '../../../lib/supabase';
 
-const { data: products } = await supabase
+// Usar service role para ver TODOS os produtos (incluindo inativos)
+const supabaseAdmin = getServiceSupabase();
+
+const { data: products } = await supabaseAdmin
   .from('products')
   .select(`
     *,
@@ -646,18 +649,41 @@ const formatPrice = (price: number) => {
       const productId = btn.dataset.id;
       const currentActive = btn.dataset.active === 'true';
       const newActive = !currentActive;
+      
+      // Pegar nome do produto para confirmação
+      const row = btn.closest('tr');
+      const productName = row?.querySelector('.product-name-link')?.textContent || 'este produto';
+
+      // Confirmação antes de desativar
+      const action = newActive ? 'ATIVAR' : 'DESATIVAR';
+      if (!confirm(`Deseja ${action} o produto "${productName}"?`)) {
+        return;
+      }
 
       // Add loading state
       btn.classList.add('loading');
       btn.disabled = true;
 
       try {
-        const { error } = await supabase
+        console.log(`Atualizando produto ${productId} para is_active = ${newActive}`);
+        
+        const { data, error } = await supabase
           .from('products')
           .update({ is_active: newActive })
-          .eq('id', productId);
+          .eq('id', productId)
+          .select();
 
-        if (error) throw error;
+        console.log('Resposta do Supabase:', { data, error });
+
+        if (error) {
+          console.error('Erro Supabase:', error);
+          throw error;
+        }
+
+        if (!data || data.length === 0) {
+          console.warn('Nenhum registro foi atualizado!');
+          alert('Aviso: O produto pode não ter sido atualizado. Verifique no banco de dados.');
+        }
 
         // Update button state
         btn.dataset.active = newActive.toString();
@@ -667,13 +693,14 @@ const formatPrice = (price: number) => {
         btn.classList.add(newActive ? 'active' : 'inactive');
 
         // Update row data attribute for filters
-        const row = btn.closest('tr');
         if (row) {
           row.setAttribute('data-status', newActive ? 'active' : 'inactive');
         }
+        
+        console.log(`Produto ${productId} atualizado com sucesso para is_active = ${newActive}`);
       } catch (error) {
         console.error('Error updating product status:', error);
-        alert('Erro ao atualizar status do produto');
+        alert('Erro ao atualizar status do produto: ' + (error as Error).message);
       } finally {
         btn.classList.remove('loading');
         btn.disabled = false;
