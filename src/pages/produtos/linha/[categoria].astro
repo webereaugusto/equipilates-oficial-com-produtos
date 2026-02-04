@@ -35,6 +35,30 @@ const { data: products } = await supabase
   .eq('is_active', true)
   .order('order_index');
 
+// Buscar imagens principais dos produtos
+const { data: productImages } = await supabase
+  .from('product_images')
+  .select('product_id, url, is_primary')
+  .order('order_index');
+
+// Criar mapa de imagens por produto (primeira imagem ou is_primary)
+const productImageMap: Record<string, string> = {};
+if (productImages) {
+  for (const img of productImages) {
+    if (!productImageMap[img.product_id] || img.is_primary) {
+      productImageMap[img.product_id] = img.url;
+    }
+  }
+}
+
+// Função para obter imagem do produto
+const getProductImage = (product: any) => {
+  if (productImageMap[product.id]) {
+    return productImageMap[product.id];
+  }
+  return getProductImagePath(product.slug, product.category?.slug || '');
+};
+
 // Buscar configuração de exibição de preços
 const { data: priceSettings } = await supabase
   .from('site_settings')
@@ -147,7 +171,7 @@ const currentSeo = seoData[category.slug as keyof typeof seoData] || {
             >
               <div class="product-image">
                 <img 
-                  src={getProductImagePath(product.slug, category.slug)}
+                  src={getProductImage(product)}
                   alt={product.title}
                   loading={index < 4 ? 'eager' : 'lazy'}
                   onerror="this.src='/images/logo-equipilates.webp'"

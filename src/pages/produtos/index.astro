@@ -20,6 +20,33 @@ const { data: products } = await supabase
   .eq('is_active', true)
   .order('order_index');
 
+// Buscar imagens principais dos produtos
+const { data: productImages } = await supabase
+  .from('product_images')
+  .select('product_id, url, is_primary')
+  .order('order_index');
+
+// Criar mapa de imagens por produto (primeira imagem ou is_primary)
+const productImageMap: Record<string, string> = {};
+if (productImages) {
+  for (const img of productImages) {
+    // Se ainda não tem imagem para este produto, ou se esta é a principal
+    if (!productImageMap[img.product_id] || img.is_primary) {
+      productImageMap[img.product_id] = img.url;
+    }
+  }
+}
+
+// Função para obter imagem do produto
+const getProductImage = (product: any) => {
+  // Primeiro tenta buscar do banco de dados
+  if (productImageMap[product.id]) {
+    return productImageMap[product.id];
+  }
+  // Fallback para imageMap estático
+  return getProductImagePath(product.slug, product.category?.slug || '');
+};
+
 // Buscar configuração de exibição de preços
 const { data: priceSettings } = await supabase
   .from('site_settings')
@@ -80,7 +107,7 @@ const formatPrice = (price: number) => {
           <a href={`/produtos/${product.slug}`} class="product-card">
             <div class="product-image">
               <img 
-                src={getProductImagePath(product.slug, product.category?.slug || '')}
+                src={getProductImage(product)}
                 alt={product.title}
                 loading="lazy"
                 onerror="this.src='/images/logo-equipilates.webp'"

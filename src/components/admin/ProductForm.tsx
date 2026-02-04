@@ -34,7 +34,8 @@ export default function ProductForm({ product, categories, hideHeader = false }:
   const [newOptionalKey, setNewOptionalKey] = useState('');
   const [newOptionalValue, setNewOptionalValue] = useState('');
   
-  const [images, setImages] = useState<Array<{ url: string; file?: File; isNew?: boolean }>>([]);
+  const [images, setImages] = useState<Array<{ id?: string; url: string; file?: File; isNew?: boolean }>>([]);
+  const [imagesToDelete, setImagesToDelete] = useState<Array<{ id: string; url: string }>>([]);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,7 +58,7 @@ export default function ProductForm({ product, categories, hideHeader = false }:
       .order('order_index');
     
     if (data) {
-      setImages(data.map(img => ({ url: img.url })));
+      setImages(data.map(img => ({ id: img.id, url: img.url })));
     }
   };
 
@@ -87,6 +88,13 @@ export default function ProductForm({ product, categories, hideHeader = false }:
   };
 
   const removeImage = (index: number) => {
+    const imageToRemove = images[index];
+    
+    // Se a imagem já existe no banco (tem ID), adiciona à lista de exclusão
+    if (imageToRemove.id && !imageToRemove.isNew) {
+      setImagesToDelete(prev => [...prev, { id: imageToRemove.id!, url: imageToRemove.url }]);
+    }
+    
     setImages(prev => prev.filter((_, i) => i !== index));
   };
 
@@ -126,6 +134,34 @@ export default function ProductForm({ product, categories, hideHeader = false }:
       ...prev,
       optional_items: (prev.optional_items as any[]).filter((_, i) => i !== index)
     }));
+  };
+
+  const deleteImages = async () => {
+    for (const img of imagesToDelete) {
+      // Deletar do banco de dados
+      await supabase
+        .from('product_images')
+        .delete()
+        .eq('id', img.id);
+      
+      // Extrair o path do arquivo da URL para deletar do storage
+      // URL formato: https://xxx.supabase.co/storage/v1/object/public/product-images/productId/filename.ext
+      try {
+        const url = new URL(img.url);
+        const pathMatch = url.pathname.match(/\/product-images\/(.+)$/);
+        if (pathMatch) {
+          const filePath = pathMatch[1];
+          await supabase.storage
+            .from('product-images')
+            .remove([filePath]);
+        }
+      } catch (e) {
+        console.error('Erro ao deletar arquivo do storage:', e);
+      }
+    }
+    
+    // Limpar a lista de imagens a deletar
+    setImagesToDelete([]);
   };
 
   const uploadImages = async (productId: string) => {
@@ -202,6 +238,11 @@ export default function ProductForm({ product, categories, hideHeader = false }:
 
         if (insertError) throw insertError;
         productId = data.id;
+      }
+
+      // Deletar imagens marcadas para exclusão
+      if (imagesToDelete.length > 0) {
+        await deleteImages();
       }
 
       // Upload new images
