@@ -524,6 +524,43 @@ body > * {
     filter: blur(0);
 }
 
+/* Hero: telas de PC médias – evita título atropelar logo/nav */
+@media (max-width: 1400px) and (min-width: 769px) {
+    .hero-content {
+        align-items: flex-start;
+        padding-top: 120px;
+        padding-left: 40px;
+        padding-right: 40px;
+    }
+
+    .content-main {
+        padding-left: 120px;
+        margin-top: 0;
+    }
+
+    .content-number {
+        font-size: 120px;
+        left: 40px;
+        opacity: 0.08;
+    }
+
+    .content-tag {
+        font-size: 10px;
+        letter-spacing: 2.5px;
+        margin-bottom: 20px;
+    }
+
+    .content-title {
+        font-size: clamp(32px, 4vw, 52px);
+        margin-bottom: 24px;
+    }
+
+    .content-description {
+        font-size: clamp(14px, 1.2vw, 16px);
+        margin-bottom: 32px;
+    }
+}
+
 /* CTAs */
 .content-cta {
     display: flex;
