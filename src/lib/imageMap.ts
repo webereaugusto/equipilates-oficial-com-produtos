@@ -22,11 +22,32 @@ export const productImageMap: Record<string, string> = {
   'wall-unit': 'reformer.webp', // placeholder
   'prancha-de-molas': 'prancha-de-molas.webp',
   
-  // Acessórios
-  'kuna-board': 'pedi pole.webp', // placeholder - substituir quando tiver imagem
-  'two-by-four': 'pedi pole.webp', // placeholder
-  'bastao-aluminio-150': 'pedi pole.webp', // placeholder
-  'spacer-box': 'bench-mat.webp', // placeholder
+  // Acessórios (catálogo PDF 21.10.2025)
+  'airplane-board': 'bench-mat.webp',
+  'neck-stretcher': 'bench-mat.webp',
+  'small-barrel': 'bench-mat.webp',
+  'bean-bag': 'bench-mat.webp',
+  'hand-tens-o-meter': 'bench-mat.webp',
+  'push-up-device': 'bench-mat.webp',
+  'plataforma-barrel-classico': 'bench-mat.webp',
+  'magic-circle-archive': 'bench-mat.webp',
+  'foot-corrector-aluminium': 'bench-mat.webp',
+  'breath-a-cizer': 'bench-mat.webp',
+  'travesseiro-benchmat': 'bench-mat.webp',
+  'travesseiro-meia-lua': 'bench-mat.webp',
+  'travesseiro-regua': 'bench-mat.webp',
+  'travesseiro-ombreira-reformer': 'bench-mat.webp',
+  'travesseiro-cervical-cilindrico': 'bench-mat.webp',
+  'travesseiro-cabeceira-espuma-4cm-espessura': 'bench-mat.webp',
+  'travesseiro-cabeceira-espuma-3cm-espessura': 'bench-mat.webp',
+  'pedi-pole': 'pedi pole.webp',
+  'toe-exerciser': 'bench-mat.webp',
+  'pad-classico': 'bench-mat.webp',
+  'spine-corrector': 'bench-mat.webp',
+  'kuna-board': 'pedi pole.webp',
+  'two-by-four': 'pedi pole.webp',
+  'bastao-aluminio-150': 'pedi pole.webp',
+  'spacer-box': 'bench-mat.webp',
 };
 
 // Mapeamento de categoria para pasta de imagens

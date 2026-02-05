@@ -7,7 +7,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "backup": "node scripts/backup.js"
+    "backup": "node scripts/backup.js",
+    "seed:acessorios": "node --env-file=.env.local scripts/seed-acessorios-pdf.js"
   },
   "dependencies": {
     "@astrojs/react": "^4.4.2",
