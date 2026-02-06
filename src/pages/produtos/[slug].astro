@@ -98,35 +98,33 @@ const seoKeywords = product.seo_keywords || `${product.title.toLowerCase()}, ${i
   keywords={seoKeywords}
   ogImage={mainImageUrl}
 >
-  <!-- JSON-LD: Product -->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Product",
-    "name": product.title,
-    "description": product.short_description || seoDescription,
-    "image": mainImageUrl,
-    "brand": {
-      "@type": "Brand",
-      "name": "Equipilates"
-    },
-    "manufacturer": {
-      "@type": "Organization",
-      "name": "Equipilates",
-      "url": "https://www.equipilates.com.br"
-    },
-    "category": product.category?.name || "Equipamentos de Pilates",
-    "url": `https://www.equipilates.com.br/produtos/${product.slug}`,
-    "offers": {
-      "@type": "Offer",
-      "availability": "https://schema.org/InStock",
-      "priceCurrency": "BRL",
-      ...(showPrices && product.price ? { "price": product.price } : { "price": "0", "priceValidUntil": "2027-12-31" }),
-      "seller": {
-        "@type": "Organization",
-        "name": "Equipilates"
-      }
+  <!-- JSON-LD: Product (offers included ONLY when preço é público) -->
+  <script type="application/ld+json" set:html={JSON.stringify((() => {
+    const productJsonLd: any = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": product.title,
+      "description": product.short_description || seoDescription,
+      "image": mainImageUrl,
+      "brand": { "@type": "Brand", "name": "Equipilates" },
+      "manufacturer": { "@type": "Organization", "name": "Equipilates", "url": "https://www.equipilates.com.br" },
+      "category": product.category?.name || "Equipamentos de Pilates",
+      "url": `https://www.equipilates.com.br/produtos/${product.slug}`
+    };
+
+    // Incluir offers apenas quando exibição de preços estiver ativada e houver preço disponível
+    if (showPrices && product.price) {
+      productJsonLd.offers = {
+        "@type": "Offer",
+        "priceCurrency": "BRL",
+        "price": Number(product.price),
+        "availability": "https://schema.org/InStock",
+        "seller": { "@type": "Organization", "name": "Equipilates" }
+      };
     }
-  })} />
+
+    return productJsonLd;
+  })())} />
 
   <!-- JSON-LD: BreadcrumbList -->
   <script type="application/ld+json" set:html={JSON.stringify({
