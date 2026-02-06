@@ -92,6 +92,44 @@ const formatPrice = (price: number) => {
   description="Equipamentos e Acessórios para Pilates profissionais. Linha Clássica em Alumínio, Linha Contemporânea em Madeira Maciça e Acessórios. Reformer, Cadillac, Chair, Barrel e mais. Fábrica própria com 2 anos de garantia."
   keywords="equipamentos para pilates, acessórios para pilates, aparelhos de pilates, reformer pilates, cadillac pilates, chair pilates, ladder barrel, equipamentos pilates profissional, equipilates, comprar equipamentos pilates"
 >
+  <!-- JSON-LD: CollectionPage + ItemList -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "Equipamentos e Acessórios para Pilates - Catálogo Completo",
+    "description": "Catálogo completo de equipamentos e acessórios para Pilates profissionais. Linha Clássica em Alumínio, Linha Contemporânea em Madeira Maciça e Acessórios.",
+    "url": "https://www.equipilates.com.br/produtos",
+    "mainEntity": {
+      "@type": "ItemList",
+      "numberOfItems": products?.length || 0,
+      "itemListElement": (products || []).map((p: any, i: number) => ({
+        "@type": "ListItem",
+        "position": i + 1,
+        "name": p.title,
+        "url": `https://www.equipilates.com.br/produtos/${p.slug}`
+      }))
+    }
+  })} />
+
+  <!-- JSON-LD: BreadcrumbList -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Início",
+        "item": "https://www.equipilates.com.br/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Produtos"
+      }
+    ]
+  })} />
+
   <!-- Hero Section -->
   <section class="hero">
     <div class="container">

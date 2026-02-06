@@ -96,7 +96,69 @@ const seoKeywords = product.seo_keywords || `${product.title.toLowerCase()}, ${i
   title={seoTitle}
   description={seoDescription}
   keywords={seoKeywords}
+  ogImage={mainImageUrl}
 >
+  <!-- JSON-LD: Product -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": product.title,
+    "description": product.short_description || seoDescription,
+    "image": mainImageUrl,
+    "brand": {
+      "@type": "Brand",
+      "name": "Equipilates"
+    },
+    "manufacturer": {
+      "@type": "Organization",
+      "name": "Equipilates",
+      "url": "https://www.equipilates.com.br"
+    },
+    "category": product.category?.name || "Equipamentos de Pilates",
+    "url": `https://www.equipilates.com.br/produtos/${product.slug}`,
+    "offers": {
+      "@type": "Offer",
+      "availability": "https://schema.org/InStock",
+      "priceCurrency": "BRL",
+      ...(showPrices && product.price ? { "price": product.price } : { "price": "0", "priceValidUntil": "2027-12-31" }),
+      "seller": {
+        "@type": "Organization",
+        "name": "Equipilates"
+      }
+    }
+  })} />
+
+  <!-- JSON-LD: BreadcrumbList -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Início",
+        "item": "https://www.equipilates.com.br/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Produtos",
+        "item": "https://www.equipilates.com.br/produtos"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": product.category?.name || "Equipamentos",
+        "item": `https://www.equipilates.com.br/produtos/linha/${product.category?.slug || 'linha-classica'}`
+      },
+      {
+        "@type": "ListItem",
+        "position": 4,
+        "name": product.title
+      }
+    ]
+  })} />
+
   <!-- Breadcrumb -->
   <section class="breadcrumb">
     <div class="container">
