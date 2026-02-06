@@ -410,18 +410,26 @@
                 <img src="images/logo-equipilates.webp" alt="Equipilates - Equipamentos de Pilates" class="logo-img" width="180" height="40" decoding="async">
             </picture>
         </div>
-        <div class="lang-switch" aria-label="Selecionar idioma">
-            <button class="lang-btn active" type="button" data-lang="pt-BR">PT</button>
-            <button class="lang-btn" type="button" data-lang="en">EN</button>
-            <button class="lang-btn" type="button" data-lang="es">ES</button>
-            <button class="lang-btn" type="button" data-lang="de">DE</button>
-        </div>
         <div class="nav-menu">
             <a href="/" data-i18n="nav.home">Início</a>
             <a href="/produtos" data-i18n="nav.produtos">Produtos</a>
             <a href="/produtos/linha/linha-classica" data-i18n="nav.classic">Linha Clássica</a>
             <a href="/produtos/linha/linha-contemporanea" data-i18n="nav.contemporary">Linha Contemporânea</a>
             <a href="#contact" data-i18n="nav.contact">Contato</a>
+        </div>
+        <div class="lang-switch lang-dropdown" aria-label="Selecionar idioma">
+            <button class="lang-toggle" type="button" aria-haspopup="true" aria-expanded="false">
+                <span class="lang-toggle-label">PT</span>
+                <svg class="lang-toggle-caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M6 9l6 6 6-6"/>
+                </svg>
+            </button>
+            <div class="lang-menu" role="menu">
+                <button class="lang-btn active" type="button" data-lang="pt-BR" data-label="PT" role="menuitem">PT</button>
+                <button class="lang-btn" type="button" data-lang="en" data-label="EN" role="menuitem">EN</button>
+                <button class="lang-btn" type="button" data-lang="es" data-label="ES" role="menuitem">ES</button>
+                <button class="lang-btn" type="button" data-lang="de" data-label="DE" role="menuitem">DE</button>
+            </div>
         </div>
         <button class="nav-toggle" aria-label="Menu">
             <span></span>

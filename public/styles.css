@@ -100,7 +100,7 @@ body > * {
     width: 100%;
     padding: 30px 60px;
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
     z-index: 1000;
     background: transparent;
@@ -177,6 +177,7 @@ body > * {
 .nav-menu {
     display: flex;
     gap: 50px;
+    margin-left: auto;
 }
 
 .nav-menu a {
@@ -206,10 +207,65 @@ body > * {
 
 .lang-switch {
     display: flex;
-    gap: 10px;
     align-items: center;
-    margin-left: auto;
-    margin-right: 30px;
+    margin-left: 32px;
+}
+
+.lang-dropdown {
+    position: relative;
+}
+
+.lang-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(0, 0, 0, 0.35);
+    color: var(--white);
+    font-size: 11px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.lang-toggle:hover {
+    border-color: rgba(255, 148, 63, 0.65);
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.lang-toggle-label {
+    text-transform: uppercase;
+}
+
+.lang-toggle-caret {
+    transition: transform 0.2s ease;
+}
+
+.lang-dropdown.open .lang-toggle-caret {
+    transform: rotate(180deg);
+}
+
+.lang-menu {
+    position: absolute;
+    top: 120%;
+    right: 0;
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.9);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    min-width: 80px;
+    z-index: 2000;
+}
+
+.lang-dropdown.open .lang-menu {
+    display: flex;
 }
 
 /* ==========================================
@@ -3016,16 +3072,9 @@ a, button, input, textarea, select {
     }
 
     .lang-switch {
-        gap: 6px;
         margin-left: auto;
         margin-right: 15px;
         flex-shrink: 0;
-    }
-
-    .lang-btn {
-        font-size: 11px;
-        padding: 7px 9px;
-        letter-spacing: 1px;
     }
     
     .logo-img {

@@ -688,7 +688,14 @@ function initHeroSlider() {
     function applyLangUI(lang) {
         // Update desktop lang buttons
         document.querySelectorAll('.lang-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.lang === lang);
+            const isActive = btn.dataset.lang === lang;
+            btn.classList.toggle('active', isActive);
+            if (isActive) {
+                const label = btn.dataset.label || btn.textContent?.trim() || '';
+                const toggle = document.querySelector('.lang-toggle');
+                const toggleLabel = toggle?.querySelector('.lang-toggle-label');
+                if (toggleLabel) toggleLabel.textContent = label;
+            }
         });
         // Update mobile lang bar buttons
         document.querySelectorAll('.mobile-lang-btn').forEach(btn => {
@@ -902,7 +909,9 @@ function initHeroSlider() {
     // Initialize first slide on load
     initFirstSlide();
 
-    // Language switch (desktop)
+    // Language switch (desktop - dropdown)
+    const langDropdown = document.querySelector('.lang-dropdown');
+    const langToggle = langDropdown?.querySelector('.lang-toggle');
     document.querySelectorAll('.lang-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const lang = btn.dataset.lang;
@@ -910,8 +919,29 @@ function initHeroSlider() {
             applyLangUI(lang);
             applyI18nStrings(lang);
             updateContent(currentIndex, { animate: false });
+            if (langDropdown && langDropdown.classList.contains('open')) {
+                langDropdown.classList.remove('open');
+                langToggle?.setAttribute('aria-expanded', 'false');
+            }
         });
     });
+
+    if (langToggle && langDropdown) {
+        langToggle.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const isOpen = langDropdown.classList.toggle('open');
+            langToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!langDropdown.contains(event.target)) {
+                if (langDropdown.classList.contains('open')) {
+                    langDropdown.classList.remove('open');
+                    langToggle.setAttribute('aria-expanded', 'false');
+                }
+            }
+        });
+    }
 
     // Language switch (mobile app-style bar)
     document.querySelectorAll('.mobile-lang-btn').forEach(btn => {
