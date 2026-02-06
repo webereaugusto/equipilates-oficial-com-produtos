@@ -178,6 +178,7 @@ body > * {
     display: flex;
     gap: 50px;
     margin-left: auto;
+    align-items: center;
 }
 
 .nav-menu a {
@@ -203,6 +204,38 @@ body > * {
 
 .nav-menu a:hover::after {
     width: 100%;
+}
+
+/* CTA WhatsApp no menu */
+.nav-menu a.nav-cta-whatsapp {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #25D366;
+    color: #fff !important;
+    padding: 8px 20px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.nav-menu a.nav-cta-whatsapp::after {
+    display: none;
+}
+
+.nav-menu a.nav-cta-whatsapp svg {
+    flex-shrink: 0;
+}
+
+.nav-menu a.nav-cta-whatsapp:hover {
+    background: #1ebe5d;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(37, 211, 102, 0.35);
 }
 
 .lang-switch {
@@ -3155,6 +3188,21 @@ a, button, input, textarea, select {
     .nav-menu.active a:nth-child(3) { transition-delay: 0.2s; }
     .nav-menu.active a:nth-child(4) { transition-delay: 0.25s; }
     .nav-menu.active a:nth-child(5) { transition-delay: 0.3s; }
+
+    .nav-menu a.nav-cta-whatsapp {
+        display: inline-flex !important;
+        width: auto;
+        background: #25D366;
+        color: #fff !important;
+        padding: 10px 24px;
+        border-radius: 999px;
+        margin-top: 12px;
+        font-size: 15px;
+    }
+
+    .nav-menu a.nav-cta-whatsapp:hover {
+        color: #fff !important;
+    }
     
     .nav-toggle {
         display: flex !important;
@@ -3530,6 +3578,46 @@ a, button, input, textarea, select {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 20px;
+    min-height: 400px;
+}
+
+/* Skeleton loading para galeria */
+.gallery-skeleton {
+    aspect-ratio: 4/3;
+    border-radius: 12px;
+    background: #1a1a1a;
+    overflow: hidden;
+    position: relative;
+}
+
+.skeleton-shimmer {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.04) 50%, transparent 100%);
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* Mensagem de categoria vazia */
+.gallery-empty-msg {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: #888;
+    font-size: 16px;
+    letter-spacing: 1px;
+    padding: 60px 20px;
+    font-style: italic;
+}
+
+/* Link wrapper para gallery items */
+a.gallery-item {
+    text-decoration: none;
+    color: inherit;
+    display: block;
 }
 
 .gallery-item {
@@ -3561,36 +3649,37 @@ a, button, input, textarea, select {
 
 .gallery-overlay {
     position: absolute;
-    top: 0;
+    bottom: 0;
     left: 0;
     width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.4);
+    padding: 12px 14px;
+    background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.25) 70%, transparent 100%);
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    justify-content: flex-end;
+    align-items: flex-start;
     opacity: 0;
     transition: opacity 0.4s ease;
 }
 
 .gallery-cat {
     font-family: 'Sora', sans-serif;
-    font-size: 10px;
-    font-weight: 800;
+    font-size: 9px;
+    font-weight: 700;
     color: #ff943f;
-    letter-spacing: 0.2em;
-    margin-bottom: 10px;
-    transform: translateY(10px);
+    letter-spacing: 0.15em;
+    margin-bottom: 4px;
+    transform: translateY(8px);
     transition: transform 0.4s ease;
 }
 
 .gallery-title {
     font-family: 'Sora', sans-serif;
-    font-size: 20px;
-    font-weight: 700;
+    font-size: 13px;
+    font-weight: 600;
     color: #fff;
-    transform: translateY(15px);
+    line-height: 1.25;
+    transform: translateY(10px);
     transition: transform 0.5s ease;
 }
 

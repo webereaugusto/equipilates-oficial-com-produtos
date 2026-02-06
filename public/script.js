@@ -1083,23 +1083,52 @@ function initNavigation() {
 }
 
 // ==========================================
-// INTERACTIVE GALLERY FILTERING
+// INTERACTIVE GALLERY FILTERING (Dinâmico via Supabase)
 // ==========================================
 function initGalleryFilters() {
     const filterBtns = document.querySelectorAll('.filter-btn');
     const galleryGrid = document.querySelector('.gallery-grid');
-    const galleryItems = document.querySelectorAll('.gallery-item');
     const loadMoreBtn = document.getElementById('btnLoadMore');
     
-    if (galleryItems.length === 0 || !galleryGrid) return;
+    if (!galleryGrid) return;
     
-    // Configurações de carregamento progressivo
-    const INITIAL_ITEMS = 8; // 2 linhas de 4
-    const ITEMS_PER_LOAD = 8; // 2 linhas de 4
+    // Configurações
+    const INITIAL_ITEMS = 8;
+    const ITEMS_PER_LOAD = 8;
     let visibleCount = INITIAL_ITEMS;
     let currentFilter = 'all';
     
-    // Função para embaralhar array (Fisher-Yates shuffle)
+    // Supabase config (chaves públicas - seguras para frontend)
+    const SUPABASE_URL = 'https://hijmbsxcvcugnmkvldgl.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhpam1ic3hjdmN1Z25ta3ZsZGdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2Nzk1MzUsImV4cCI6MjA4NDI1NTUzNX0.Q4Hy-K8RxhVDCarj_ojD5ILb11iO4Jk7KC-5fYlrTh0';
+    
+    // Mapeamento de slug de categoria para classe de filtro
+    const categoryMap = {
+        'linha-classica': { filterClass: 'classica', label: 'LINHA CLÁSSICA' },
+        'linha-contemporanea': { filterClass: 'contemporanea', label: 'LINHA CONTEMPORÂNEA' },
+        'acessorios': { filterClass: 'acessorios', label: 'ACESSÓRIOS' }
+    };
+    
+    // Fallback de imagens estáticas locais para produtos sem foto no Supabase
+    var staticImageMap = {
+        'arm-chair': 'images/linha-classic/arm-chair.webp',
+        'bench-mat': 'images/linha-classic/bench-mat.webp',
+        'cadillac-aluminum': 'images/linha-classic/cadillac aluminio.webp',
+        'electric-chair': 'images/linha-classic/electric chair.webp',
+        'guilotina-aluminum': 'images/linha-classic/guilhotina.webp',
+        'ladder-barrel-classico': 'images/linha-classic/lader barrel.webp',
+        'mat-classico': 'images/linha-classic/mat.webp',
+        'mat-portatil': 'images/linha-classic/mat portatil.webp',
+        'reformer-86-aluminum': 'images/linha-classic/reformer aluminium.webp',
+        'reformer-torre-aluminum': 'images/linha-classic/reformer aluminium.webp',
+        'ladder-barrel': 'images/linha-contemporanea/ladder-barrel.webp',
+        'prancha-de-molas': 'images/linha-contemporanea/prancha-de-molas.webp',
+        'reformer': 'images/linha-contemporanea/reformer.webp',
+        'reformer-torre': 'images/linha-contemporanea/reformer-torre.webp',
+        'step-chair': 'images/linha-contemporanea/step-chair.webp'
+    };
+    
+    // Fisher-Yates shuffle
     function shuffleArray(array) {
         const shuffled = [...array];
         for (let i = shuffled.length - 1; i > 0; i--) {
@@ -1109,102 +1138,241 @@ function initGalleryFilters() {
         return shuffled;
     }
     
-    // Embaralhar os itens da galeria no DOM
-    function shuffleGalleryItems() {
-        const itemsArray = Array.from(galleryItems);
-        const shuffledItems = shuffleArray(itemsArray);
-        
-        // Remover todos os itens do grid
-        itemsArray.forEach(item => item.remove());
-        
-        // Reinserir na ordem embaralhada
-        shuffledItems.forEach(item => galleryGrid.appendChild(item));
-        
-        return shuffledItems;
-    }
+    var galleryRendered = false;
     
-    // Embaralhar os itens ao carregar a página
-    const shuffledGalleryItems = shuffleGalleryItems();
-    
-    // Função para obter itens filtrados (usa a ordem embaralhada)
-    function getFilteredItems() {
-        const currentItems = Array.from(document.querySelectorAll('.gallery-item'));
-        return currentItems.filter(item => {
-            if (currentFilter === 'all') return true;
-            return item.classList.contains(currentFilter);
-        });
-    }
-    
-    // Função para atualizar visibilidade dos itens
-    function updateGalleryVisibility() {
-        const filteredItems = getFilteredItems();
-        const allItems = document.querySelectorAll('.gallery-item');
-        
-        allItems.forEach(item => {
-            item.classList.add('gallery-hidden');
-            item.classList.remove('gallery-reveal');
-        });
-        
-        filteredItems.forEach((item, index) => {
-            if (index < visibleCount) {
-                item.classList.remove('gallery-hidden');
+    // Buscar produtos do Supabase e renderizar
+    async function loadGalleryFromSupabase() {
+        try {
+            // Verificar se Supabase SDK carregou
+            if (typeof supabase === 'undefined' || !supabase.createClient) {
+                console.warn('Supabase SDK não carregado, tentando novamente...');
+                setTimeout(loadGalleryFromSupabase, 200);
+                return;
             }
-        });
-        
-        // Mostrar/esconder botão "Carregar mais"
-        if (loadMoreBtn) {
-            if (visibleCount >= filteredItems.length) {
-                loadMoreBtn.classList.add('hidden');
-            } else {
-                loadMoreBtn.classList.remove('hidden');
+            
+            var sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            
+            // Buscar produtos ativos com categoria
+            var prodResult = await sb
+                .from('products')
+                .select('id, title, slug, category:categories(name, slug)')
+                .eq('is_active', true)
+                .order('order_index');
+            
+            if (prodResult.error) throw prodResult.error;
+            var products = prodResult.data || [];
+            
+            // Buscar imagens dos produtos
+            var imgResult = await sb
+                .from('product_images')
+                .select('product_id, url, is_primary')
+                .order('order_index');
+            
+            if (imgResult.error) throw imgResult.error;
+            var images = imgResult.data || [];
+            
+            // Mapear imagem principal por produto
+            var imageMap = {};
+            images.forEach(function(img) {
+                if (!imageMap[img.product_id] || img.is_primary) {
+                    imageMap[img.product_id] = img.url;
+                }
+            });
+            
+            // Limpar skeletons
+            galleryGrid.innerHTML = '';
+            
+            // Embaralhar produtos
+            var shuffled = shuffleArray(products);
+            
+            // Gerar cards HTML
+            shuffled.forEach(function(product) {
+                var catSlug = product.category ? product.category.slug : '';
+                var catInfo = categoryMap[catSlug] || { filterClass: 'outros', label: catSlug.toUpperCase() };
+                var imgUrl = imageMap[product.id] || staticImageMap[product.slug];
+                if (!imgUrl) return; // Pular se sem nenhuma imagem
+                
+                var item = document.createElement('a');
+                item.href = '/produtos/' + product.slug;
+                item.className = 'gallery-item ' + catInfo.filterClass;
+                item.innerHTML = 
+                    '<div class="gallery-img-wrapper">' +
+                        '<img src="' + imgUrl + '" alt="Equipamentos de Pilates - ' + product.title + ' Equipilates" loading="lazy">' +
+                        '<div class="gallery-overlay">' +
+                            '<span class="gallery-cat">' + catInfo.label + '</span>' +
+                            '<h3 class="gallery-title">' + product.title + '</h3>' +
+                        '</div>' +
+                    '</div>';
+                
+                galleryGrid.appendChild(item);
+            });
+            
+            // Inicializar filtros e visibilidade
+            galleryRendered = true;
+            setupFiltersAndVisibility();
+            
+            // Cache no sessionStorage para próxima visita
+            try {
+                sessionStorage.setItem('gallery_cache', JSON.stringify({
+                    products: shuffled,
+                    imageMap: imageMap,
+                    timestamp: Date.now()
+                }));
+            } catch(e) { /* silenciar erros de storage */ }
+            
+        } catch (err) {
+            console.error('Erro ao carregar galeria:', err);
+            // Só mostrar erro se não tiver conteúdo já renderizado (cache)
+            if (!galleryRendered) {
+                galleryGrid.innerHTML = '<p style="text-align:center;color:#999;grid-column:1/-1;padding:40px 0;">Erro ao carregar produtos. Tente recarregar a página.</p>';
             }
         }
     }
     
-    // Função para carregar mais itens
-    function loadMoreItems() {
-        const filteredItems = getFilteredItems();
-        const previousCount = visibleCount;
-        visibleCount = Math.min(visibleCount + ITEMS_PER_LOAD, filteredItems.length);
+    // Renderizar do cache
+    function renderFromCache(cached) {
+        galleryGrid.innerHTML = '';
+        galleryRendered = true;
         
-        // Revelar novos itens com animação
-        filteredItems.forEach((item, index) => {
-            if (index >= previousCount && index < visibleCount) {
-                item.classList.remove('gallery-hidden');
-                item.classList.add('gallery-reveal');
-            }
+        cached.products.forEach(function(product) {
+            var catSlug = product.category ? product.category.slug : '';
+            var catInfo = categoryMap[catSlug] || { filterClass: 'outros', label: catSlug.toUpperCase() };
+            var imgUrl = cached.imageMap[product.id] || staticImageMap[product.slug];
+            if (!imgUrl) return; // Pular se sem nenhuma imagem
+            
+            var item = document.createElement('a');
+            item.href = '/produtos/' + product.slug;
+            item.className = 'gallery-item ' + catInfo.filterClass;
+            item.innerHTML = 
+                '<div class="gallery-img-wrapper">' +
+                    '<img src="' + imgUrl + '" alt="Equipamentos de Pilates - ' + product.title + ' Equipilates" loading="lazy">' +
+                    '<div class="gallery-overlay">' +
+                        '<span class="gallery-cat">' + catInfo.label + '</span>' +
+                        '<h3 class="gallery-title">' + product.title + '</h3>' +
+                    '</div>' +
+                '</div>';
+            
+            galleryGrid.appendChild(item);
         });
         
-        // Atualizar botão
-        if (loadMoreBtn && visibleCount >= filteredItems.length) {
-            loadMoreBtn.classList.add('hidden');
+        setupFiltersAndVisibility();
+    }
+    
+    // Configurar filtros e visibilidade
+    function setupFiltersAndVisibility() {
+        // Re-buscar botão no DOM (pode ter sido substituído)
+        var currentLoadMoreBtn = document.getElementById('btnLoadMore');
+        
+        // Obter itens filtrados
+        function getFilteredItems() {
+            var currentItems = Array.from(galleryGrid.querySelectorAll('.gallery-item'));
+            return currentItems.filter(function(item) {
+                if (currentFilter === 'all') return true;
+                return item.classList.contains(currentFilter);
+            });
         }
-    }
-    
-    // Inicializar visibilidade
-    updateGalleryVisibility();
-    
-    // Event listener para botão "Carregar mais"
-    if (loadMoreBtn) {
-        loadMoreBtn.addEventListener('click', loadMoreItems);
-    }
-    
-    // Event listeners para filtros
-    filterBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            // Remove active from all buttons
-            filterBtns.forEach(b => b.classList.remove('active'));
-            // Add active to clicked button
-            btn.classList.add('active');
+        
+        // Atualizar visibilidade
+        function updateGalleryVisibility() {
+            var filteredItems = getFilteredItems();
+            var allItems = galleryGrid.querySelectorAll('.gallery-item');
             
-            // Atualizar filtro atual e resetar contador
-            currentFilter = btn.dataset.filter;
-            visibleCount = INITIAL_ITEMS;
+            // Remover mensagem de vazio anterior, se existir
+            var emptyMsg = galleryGrid.querySelector('.gallery-empty-msg');
+            if (emptyMsg) emptyMsg.remove();
             
-            // Atualizar galeria
-            updateGalleryVisibility();
+            allItems.forEach(function(item) {
+                item.classList.add('gallery-hidden');
+                item.classList.remove('gallery-reveal');
+            });
+            
+            // Se não há produtos nesta categoria, mostrar mensagem
+            if (filteredItems.length === 0) {
+                var msg = document.createElement('p');
+                msg.className = 'gallery-empty-msg';
+                msg.textContent = 'Sem produtos ativos no momento';
+                galleryGrid.appendChild(msg);
+            }
+            
+            filteredItems.forEach(function(item, index) {
+                if (index < visibleCount) {
+                    item.classList.remove('gallery-hidden');
+                }
+            });
+            
+            if (currentLoadMoreBtn) {
+                if (filteredItems.length === 0 || visibleCount >= filteredItems.length) {
+                    currentLoadMoreBtn.classList.add('hidden');
+                } else {
+                    currentLoadMoreBtn.classList.remove('hidden');
+                }
+            }
+        }
+        
+        // Carregar mais
+        function loadMoreItems() {
+            var filteredItems = getFilteredItems();
+            var previousCount = visibleCount;
+            visibleCount = Math.min(visibleCount + ITEMS_PER_LOAD, filteredItems.length);
+            
+            filteredItems.forEach(function(item, index) {
+                if (index >= previousCount && index < visibleCount) {
+                    item.classList.remove('gallery-hidden');
+                    item.classList.add('gallery-reveal');
+                }
+            });
+            
+            if (currentLoadMoreBtn && visibleCount >= filteredItems.length) {
+                currentLoadMoreBtn.classList.add('hidden');
+            }
+        }
+        
+        // Inicializar
+        visibleCount = INITIAL_ITEMS;
+        updateGalleryVisibility();
+        
+        // Event listener para "Carregar mais" (clonar para limpar listeners antigos)
+        if (currentLoadMoreBtn && currentLoadMoreBtn.parentNode) {
+            var newBtn = currentLoadMoreBtn.cloneNode(true);
+            currentLoadMoreBtn.parentNode.replaceChild(newBtn, currentLoadMoreBtn);
+            currentLoadMoreBtn = newBtn;
+            newBtn.addEventListener('click', loadMoreItems);
+        }
+        
+        // Limpar e re-registrar listeners dos filtros
+        filterBtns.forEach(function(btn) {
+            var newFilterBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newFilterBtn, btn);
         });
-    });
+        // Re-buscar filtros após clonagem
+        var freshFilterBtns = document.querySelectorAll('.filter-btn');
+        freshFilterBtns.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                freshFilterBtns.forEach(function(b) { b.classList.remove('active'); });
+                btn.classList.add('active');
+                currentFilter = btn.dataset.filter;
+                visibleCount = INITIAL_ITEMS;
+                updateGalleryVisibility();
+            });
+        });
+    }
+    
+    // Verificar cache (válido por 5 minutos)
+    try {
+        var cached = sessionStorage.getItem('gallery_cache');
+        if (cached) {
+            cached = JSON.parse(cached);
+            if (Date.now() - cached.timestamp < 5 * 60 * 1000) {
+                renderFromCache(cached);
+                // Atualizar em background silenciosamente
+                loadGalleryFromSupabase();
+                return;
+            }
+        }
+    } catch(e) { /* sem cache, carrega normalmente */ }
+    
+    // Carregar do Supabase
+    loadGalleryFromSupabase();
 }
 
 // ==========================================
