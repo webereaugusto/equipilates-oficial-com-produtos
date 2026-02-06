@@ -1341,6 +1341,7 @@ function initGalleryFilters() {
         
         // Limpar e re-registrar listeners dos filtros
         filterBtns.forEach(function(btn) {
+            if (!btn || !btn.parentNode) return;
             var newFilterBtn = btn.cloneNode(true);
             btn.parentNode.replaceChild(newFilterBtn, btn);
         });
