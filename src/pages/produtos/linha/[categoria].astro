@@ -108,7 +108,7 @@ const seoData = {
 
 const currentSeo = seoData[category.slug as keyof typeof seoData] || {
   title: `${category.name} - Equipamentos e Acessórios para Pilates`,
-  description: category.description || `Conheça os produtos da ${category.name} Equipilates. Qualidade premium com 2 anos de garantia.`,
+  description: category.description || `Conheça os produtos da ${category.name} Equipilates. Qualidade premium com ${isAcessorios ? '3 meses de garantia' : '2 anos de garantia'}.`,
   keywords: `${category.name.toLowerCase()}, equipamentos pilates, acessórios pilates, equipilates`
 };
 ---

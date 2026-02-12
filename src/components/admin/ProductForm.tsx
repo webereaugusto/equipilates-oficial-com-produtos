@@ -12,7 +12,7 @@ export default function ProductForm({ product, categories, hideHeader = false }:
   const isEditing = !!product;
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const [activeTab, setActiveTab] = useState<'basic' | 'details' | 'seo' | 'images'>('basic');
+  const [activeTab, setActiveTab] = useState<'basic' | 'details' | 'seo' | 'images' | 'translations'>('basic');
   const [formData, setFormData] = useState({
     category_id: product?.category_id || '',
     title: product?.title || '',
@@ -27,8 +27,20 @@ export default function ProductForm({ product, categories, hideHeader = false }:
     seo_keywords: product?.seo_keywords || '',
     seo_text: product?.seo_text || '',
     is_active: product?.is_active ?? true,
-    order_index: product?.order_index?.toString() || '0'
+    order_index: product?.order_index?.toString() || '0',
+    // Translation fields
+    title_en: (product as any)?.title_en || '',
+    title_es: (product as any)?.title_es || '',
+    title_de: (product as any)?.title_de || '',
+    short_description_en: (product as any)?.short_description_en || '',
+    short_description_es: (product as any)?.short_description_es || '',
+    short_description_de: (product as any)?.short_description_de || '',
+    detailed_description_en: (product as any)?.detailed_description_en || '',
+    detailed_description_es: (product as any)?.detailed_description_es || '',
+    detailed_description_de: (product as any)?.detailed_description_de || '',
   });
+
+  const [translating, setTranslating] = useState<string | null>(null); // 'en', 'es', 'de', 'all' or null
 
   const [newSpec, setNewSpec] = useState('');
   const [newOptionalKey, setNewOptionalKey] = useState('');
@@ -203,7 +215,7 @@ export default function ProductForm({ product, categories, hideHeader = false }:
     setSuccess(false);
 
     try {
-      const productData = {
+      const productData: Record<string, any> = {
         category_id: formData.category_id,
         title: formData.title,
         slug: formData.slug,
@@ -217,7 +229,17 @@ export default function ProductForm({ product, categories, hideHeader = false }:
         seo_keywords: formData.seo_keywords || null,
         seo_text: formData.seo_text || null,
         is_active: formData.is_active,
-        order_index: parseInt(formData.order_index) || 0
+        order_index: parseInt(formData.order_index) || 0,
+        // Translation fields
+        title_en: formData.title_en || null,
+        title_es: formData.title_es || null,
+        title_de: formData.title_de || null,
+        short_description_en: formData.short_description_en || null,
+        short_description_es: formData.short_description_es || null,
+        short_description_de: formData.short_description_de || null,
+        detailed_description_en: formData.detailed_description_en || null,
+        detailed_description_es: formData.detailed_description_es || null,
+        detailed_description_de: formData.detailed_description_de || null,
       };
 
       let productId = product?.id;
@@ -261,6 +283,67 @@ export default function ProductForm({ product, categories, hideHeader = false }:
       setError(err.message || 'Erro ao salvar produto');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // AI Translation
+  const translateWithAI = async (targetLangs: string[]) => {
+    if (!product?.id) {
+      setError('Salve o produto primeiro antes de traduzir.');
+      return;
+    }
+    
+    const langLabel = targetLangs.length === 3 ? 'all' : targetLangs[0];
+    setTranslating(langLabel);
+    setError(null);
+
+    try {
+      const res = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          productId: product.id, 
+          languages: targetLangs,
+          overwrite: true 
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        throw new Error(data.error || 'Erro na tradução');
+      }
+
+      // Reload translated data from Supabase
+      const { data: updated } = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', product.id)
+        .single();
+
+      if (updated) {
+        const translationFields = [
+          'title_en', 'title_es', 'title_de',
+          'short_description_en', 'short_description_es', 'short_description_de',
+          'detailed_description_en', 'detailed_description_es', 'detailed_description_de'
+        ];
+        
+        const updates: Record<string, string> = {};
+        for (const field of translationFields) {
+          if ((updated as any)[field]) {
+            updates[field] = (updated as any)[field];
+          }
+        }
+        
+        setFormData(prev => ({ ...prev, ...updates }));
+      }
+
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err: any) {
+      setError(err.message || 'Erro ao traduzir');
+    } finally {
+      setTranslating(null);
     }
   };
 
@@ -378,6 +461,18 @@ export default function ProductForm({ product, categories, hideHeader = false }:
             <line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
           SEO
+        </button>
+        <button 
+          className={`tab ${activeTab === 'translations' ? 'active' : ''}`}
+          onClick={() => setActiveTab('translations')}
+          type="button"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="2" y1="12" x2="22" y2="12"/>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          </svg>
+          Traduções
         </button>
       </div>
 
@@ -668,6 +763,226 @@ export default function ProductForm({ product, categories, hideHeader = false }:
                   value={formData.seo_text}
                   onChange={(e) => setFormData({ ...formData, seo_text: e.target.value })}
                   placeholder="Texto rico em palavras-chave para melhorar o posicionamento"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Translations Tab */}
+        <div className={`tab-content ${activeTab === 'translations' ? 'active' : ''}`}>
+          {/* Global translate all button */}
+          <div className="translate-header">
+            <div className="translate-header-info">
+              <h3>Traduções do Produto</h3>
+              <p className="section-desc">Traduza título, descrição curta e descrição detalhada para o site internacional.</p>
+            </div>
+            <button
+              type="button"
+              className="btn-translate-all"
+              onClick={() => translateWithAI(['en', 'es', 'de'])}
+              disabled={!!translating || !isEditing}
+              title={!isEditing ? 'Salve o produto antes de traduzir' : 'Traduzir todos os idiomas via IA'}
+            >
+              {translating === 'all' ? (
+                <><span className="spinner"></span> Traduzindo...</>
+              ) : (
+                <>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18">
+                    <path d="M5 8l6 6M4 14l6-6 2-3M2 5h12M7 2h1M22 22l-5-10-5 10M14 18h6"/>
+                  </svg>
+                  Traduzir Todos (IA)
+                </>
+              )}
+            </button>
+          </div>
+
+          {!isEditing && (
+            <div className="alert alert-info">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="16" x2="12" y2="12"/>
+                <line x1="12" y1="8" x2="12.01" y2="8"/>
+              </svg>
+              <span>Salve o produto primeiro para habilitar a tradução automática via IA.</span>
+            </div>
+          )}
+
+          {/* English */}
+          <div className="translation-block">
+            <div className="translation-block-header">
+              <div className="lang-badge">
+                <span className="lang-flag">🇬🇧</span>
+                <span className="lang-name">English</span>
+                <span className={`lang-status ${formData.title_en ? 'translated' : 'empty'}`}>
+                  {formData.title_en ? 'Traduzido' : 'Pendente'}
+                </span>
+              </div>
+              <button
+                type="button"
+                className="btn-translate-single"
+                onClick={() => translateWithAI(['en'])}
+                disabled={!!translating || !isEditing}
+              >
+                {translating === 'en' ? (
+                  <><span className="spinner-sm"></span></>
+                ) : (
+                  <>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+                      <path d="M5 8l6 6M4 14l6-6 2-3M2 5h12M7 2h1M22 22l-5-10-5 10M14 18h6"/>
+                    </svg>
+                    Traduzir EN
+                  </>
+                )}
+              </button>
+            </div>
+            <div className="translation-fields">
+              <div className="form-group full">
+                <label>Título (EN)</label>
+                <input
+                  type="text"
+                  value={formData.title_en}
+                  onChange={(e) => setFormData({ ...formData, title_en: e.target.value })}
+                  placeholder="Product title in English"
+                />
+                {formData.title && <span className="input-hint original-text">PT: {formData.title}</span>}
+              </div>
+              <div className="form-group full">
+                <label>Descrição Curta (EN)</label>
+                <textarea
+                  rows={2}
+                  value={formData.short_description_en}
+                  onChange={(e) => setFormData({ ...formData, short_description_en: e.target.value })}
+                  placeholder="Short description in English"
+                />
+              </div>
+              <div className="form-group full">
+                <label>Descrição Detalhada (EN)</label>
+                <textarea
+                  rows={4}
+                  value={formData.detailed_description_en}
+                  onChange={(e) => setFormData({ ...formData, detailed_description_en: e.target.value })}
+                  placeholder="Detailed description in English"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Spanish */}
+          <div className="translation-block">
+            <div className="translation-block-header">
+              <div className="lang-badge">
+                <span className="lang-flag">🇪🇸</span>
+                <span className="lang-name">Español</span>
+                <span className={`lang-status ${formData.title_es ? 'translated' : 'empty'}`}>
+                  {formData.title_es ? 'Traduzido' : 'Pendente'}
+                </span>
+              </div>
+              <button
+                type="button"
+                className="btn-translate-single"
+                onClick={() => translateWithAI(['es'])}
+                disabled={!!translating || !isEditing}
+              >
+                {translating === 'es' ? (
+                  <><span className="spinner-sm"></span></>
+                ) : (
+                  <>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+                      <path d="M5 8l6 6M4 14l6-6 2-3M2 5h12M7 2h1M22 22l-5-10-5 10M14 18h6"/>
+                    </svg>
+                    Traduzir ES
+                  </>
+                )}
+              </button>
+            </div>
+            <div className="translation-fields">
+              <div className="form-group full">
+                <label>Título (ES)</label>
+                <input
+                  type="text"
+                  value={formData.title_es}
+                  onChange={(e) => setFormData({ ...formData, title_es: e.target.value })}
+                  placeholder="Título del producto en Español"
+                />
+                {formData.title && <span className="input-hint original-text">PT: {formData.title}</span>}
+              </div>
+              <div className="form-group full">
+                <label>Descripción Corta (ES)</label>
+                <textarea
+                  rows={2}
+                  value={formData.short_description_es}
+                  onChange={(e) => setFormData({ ...formData, short_description_es: e.target.value })}
+                  placeholder="Descripción corta en Español"
+                />
+              </div>
+              <div className="form-group full">
+                <label>Descripción Detallada (ES)</label>
+                <textarea
+                  rows={4}
+                  value={formData.detailed_description_es}
+                  onChange={(e) => setFormData({ ...formData, detailed_description_es: e.target.value })}
+                  placeholder="Descripción detallada en Español"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* German */}
+          <div className="translation-block">
+            <div className="translation-block-header">
+              <div className="lang-badge">
+                <span className="lang-flag">🇩🇪</span>
+                <span className="lang-name">Deutsch</span>
+                <span className={`lang-status ${formData.title_de ? 'translated' : 'empty'}`}>
+                  {formData.title_de ? 'Traduzido' : 'Pendente'}
+                </span>
+              </div>
+              <button
+                type="button"
+                className="btn-translate-single"
+                onClick={() => translateWithAI(['de'])}
+                disabled={!!translating || !isEditing}
+              >
+                {translating === 'de' ? (
+                  <><span className="spinner-sm"></span></>
+                ) : (
+                  <>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+                      <path d="M5 8l6 6M4 14l6-6 2-3M2 5h12M7 2h1M22 22l-5-10-5 10M14 18h6"/>
+                    </svg>
+                    Traduzir DE
+                  </>
+                )}
+              </button>
+            </div>
+            <div className="translation-fields">
+              <div className="form-group full">
+                <label>Titel (DE)</label>
+                <input
+                  type="text"
+                  value={formData.title_de}
+                  onChange={(e) => setFormData({ ...formData, title_de: e.target.value })}
+                  placeholder="Produkttitel auf Deutsch"
+                />
+                {formData.title && <span className="input-hint original-text">PT: {formData.title}</span>}
+              </div>
+              <div className="form-group full">
+                <label>Kurzbeschreibung (DE)</label>
+                <textarea
+                  rows={2}
+                  value={formData.short_description_de}
+                  onChange={(e) => setFormData({ ...formData, short_description_de: e.target.value })}
+                  placeholder="Kurzbeschreibung auf Deutsch"
+                />
+              </div>
+              <div className="form-group full">
+                <label>Detaillierte Beschreibung (DE)</label>
+                <textarea
+                  rows={4}
+                  value={formData.detailed_description_de}
+                  onChange={(e) => setFormData({ ...formData, detailed_description_de: e.target.value })}
+                  placeholder="Detaillierte Beschreibung auf Deutsch"
                 />
               </div>
             </div>
@@ -1348,6 +1663,158 @@ export default function ProductForm({ product, categories, hideHeader = false }:
           to { transform: rotate(360deg); }
         }
 
+        /* Translations Tab */
+        .translate-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 24px;
+          padding-bottom: 20px;
+          border-bottom: 1px solid rgba(255,255,255,0.1);
+          gap: 16px;
+        }
+
+        .translate-header h3 {
+          font-size: 1.1rem;
+          margin-bottom: 4px;
+        }
+
+        .btn-translate-all {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 12px 20px;
+          background: linear-gradient(135deg, #6366f1, #8b5cf6);
+          color: #fff;
+          border-radius: 10px;
+          font-weight: 600;
+          font-size: 0.9rem;
+          transition: all 0.2s;
+          white-space: nowrap;
+          border: none;
+          cursor: pointer;
+        }
+
+        .btn-translate-all:hover:not(:disabled) {
+          background: linear-gradient(135deg, #4f46e5, #7c3aed);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-translate-all:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        .alert-info {
+          background: rgba(59, 130, 246, 0.1);
+          border: 1px solid rgba(59, 130, 246, 0.3);
+          color: #60a5fa;
+        }
+
+        .translation-block {
+          background: rgba(255,255,255,0.02);
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 12px;
+          margin-bottom: 20px;
+          overflow: hidden;
+        }
+
+        .translation-block-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 16px 20px;
+          background: rgba(255,255,255,0.03);
+          border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .lang-badge {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .lang-flag {
+          font-size: 1.4rem;
+        }
+
+        .lang-name {
+          font-weight: 600;
+          font-size: 1rem;
+        }
+
+        .lang-status {
+          padding: 3px 10px;
+          border-radius: 12px;
+          font-size: 0.75rem;
+          font-weight: 500;
+        }
+
+        .lang-status.translated {
+          background: rgba(34, 197, 94, 0.15);
+          color: #22c55e;
+        }
+
+        .lang-status.empty {
+          background: rgba(107, 114, 128, 0.15);
+          color: #9ca3af;
+        }
+
+        .btn-translate-single {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 14px;
+          background: rgba(99, 102, 241, 0.1);
+          color: #818cf8;
+          border: 1px solid rgba(99, 102, 241, 0.2);
+          border-radius: 8px;
+          font-weight: 500;
+          font-size: 0.85rem;
+          transition: all 0.2s;
+          cursor: pointer;
+        }
+
+        .btn-translate-single:hover:not(:disabled) {
+          background: rgba(99, 102, 241, 0.2);
+          border-color: rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-translate-single:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+        }
+
+        .translation-fields {
+          padding: 20px;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        .original-text {
+          color: #666;
+          font-style: italic;
+          font-size: 0.8rem;
+          display: block;
+          max-width: 100%;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .spinner-sm {
+          width: 14px;
+          height: 14px;
+          border: 2px solid transparent;
+          border-top-color: currentColor;
+          border-radius: 50%;
+          animation: spin 0.8s linear infinite;
+          display: inline-block;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
           .form-grid {
@@ -1409,6 +1876,26 @@ export default function ProductForm({ product, categories, hideHeader = false }:
           .item-tag {
             font-size: 0.8rem;
             padding: 6px 10px;
+          }
+
+          .translate-header {
+            flex-direction: column;
+          }
+
+          .btn-translate-all {
+            width: 100%;
+            justify-content: center;
+          }
+
+          .translation-block-header {
+            flex-direction: column;
+            gap: 12px;
+            align-items: flex-start;
+          }
+
+          .btn-translate-single {
+            width: 100%;
+            justify-content: center;
           }
         }
       `}</style>

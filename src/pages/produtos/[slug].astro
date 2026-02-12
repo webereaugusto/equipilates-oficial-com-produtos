@@ -88,7 +88,8 @@ const mainImageUrl = hasUploadedImages
 const isAcessorio = categorySlug === 'acessorios';
 const productType = isAcessorio ? 'Acessório para Pilates' : 'Equipamento de Pilates';
 const seoTitle = product.seo_title || `${product.title} | ${productType} - Equipilates`;
-const seoDescription = product.seo_description || `${product.short_description} ${productType} profissional com qualidade premium Equipilates. Fábrica própria com 2 anos de garantia.`;
+const warrantyText = isAcessorio ? '3 meses de garantia' : '2 anos de garantia';
+const seoDescription = product.seo_description || `${product.short_description} ${productType} profissional com qualidade premium Equipilates. Fábrica própria com ${warrantyText}.`;
 const seoKeywords = product.seo_keywords || `${product.title.toLowerCase()}, ${isAcessorio ? 'acessórios para pilates' : 'equipamentos para pilates'}, ${product.category?.name?.toLowerCase()}, equipilates, comprar ${product.title.split(' - ')[0].toLowerCase()}`;
 ---
 
@@ -273,14 +274,14 @@ const seoKeywords = product.seo_keywords || `${product.title.toLowerCase()}, ${i
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
               </svg>
-              <span>2 Anos de Garantia</span>
+              <span>{isAcessorio ? '3 Meses de Garantia' : '2 Anos de Garantia'}</span>
             </div>
             <div class="guarantee-item">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="1" y="3" width="22" height="18" rx="2" ry="2"/>
                 <line x1="1" y1="9" x2="23" y2="9"/>
               </svg>
-              <span>Parcelamento em até 12x</span>
+              <span>Parcelamento em até 24x</span>
             </div>
             <div class="guarantee-item">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -415,7 +416,7 @@ const seoKeywords = product.seo_keywords || `${product.title.toLowerCase()}, ${i
           </div>
           <span class="why-number">04</span>
           <h3>Parcelamento Facilitado</h3>
-          <p>Condições especiais de pagamento em até 12x. Financiamento para studios.</p>
+          <p>Condições especiais de pagamento em até 24x. Financiamento para studios.</p>
         </div>
       </div>
 

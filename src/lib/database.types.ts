@@ -54,6 +54,16 @@ export interface Database {
           order_index: number
           created_at: string
           updated_at: string
+          // Translation fields
+          title_en: string | null
+          title_es: string | null
+          title_de: string | null
+          short_description_en: string | null
+          short_description_es: string | null
+          short_description_de: string | null
+          detailed_description_en: string | null
+          detailed_description_es: string | null
+          detailed_description_de: string | null
         }
         Insert: {
           id?: string
@@ -73,6 +83,16 @@ export interface Database {
           order_index?: number
           created_at?: string
           updated_at?: string
+          // Translation fields
+          title_en?: string | null
+          title_es?: string | null
+          title_de?: string | null
+          short_description_en?: string | null
+          short_description_es?: string | null
+          short_description_de?: string | null
+          detailed_description_en?: string | null
+          detailed_description_es?: string | null
+          detailed_description_de?: string | null
         }
         Update: {
           id?: string
@@ -92,6 +112,16 @@ export interface Database {
           order_index?: number
           created_at?: string
           updated_at?: string
+          // Translation fields
+          title_en?: string | null
+          title_es?: string | null
+          title_de?: string | null
+          short_description_en?: string | null
+          short_description_es?: string | null
+          short_description_de?: string | null
+          detailed_description_en?: string | null
+          detailed_description_es?: string | null
+          detailed_description_de?: string | null
         }
       }
       product_images: {

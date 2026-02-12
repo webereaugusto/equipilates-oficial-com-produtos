@@ -29,14 +29,24 @@ const formatPrice = (price: number) => {
         <h1>Produtos</h1>
         <p>Gerencie todos os produtos do catálogo</p>
       </div>
-      <a href="/admin/produtos/novo" class="btn-primary">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/>
-          <line x1="12" y1="8" x2="12" y2="16"/>
-          <line x1="8" y1="12" x2="16" y2="12"/>
-        </svg>
-        Novo Produto
-      </a>
+      <div class="header-buttons">
+        <button id="translateAllBtn" class="btn-translate-bulk" title="Traduzir todos os produtos ativos para EN/ES/DE via IA">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="2" y1="12" x2="22" y2="12"/>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          </svg>
+          Traduzir Todos (IA)
+        </button>
+        <a href="/admin/produtos/novo" class="btn-primary">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="16"/>
+            <line x1="8" y1="12" x2="16" y2="12"/>
+          </svg>
+          Novo Produto
+        </a>
+      </div>
     </header>
 
     <!-- Filters -->
@@ -142,6 +152,24 @@ const formatPrice = (price: number) => {
     )}
   </div>
 
+  <!-- Translate Progress Modal -->
+  <div class="translate-progress-overlay" id="translateModal">
+    <div class="translate-progress">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="1.5" style="margin-bottom: 12px;">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="2" y1="12" x2="22" y2="12"/>
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+      </svg>
+      <h3 id="translateTitle">Traduzindo Produtos...</h3>
+      <p id="translateStatus">Iniciando tradução via IA...</p>
+      <div class="progress-bar">
+        <div class="progress-fill" id="translateProgress" style="width: 0%"></div>
+      </div>
+      <div class="translate-results" id="translateResults" style="display: none;"></div>
+      <button class="btn-close-progress" id="closeTranslateModal" style="display: none;">Fechar</button>
+    </div>
+  </div>
+
   <!-- Delete Confirmation Modal -->
   <div class="modal-overlay" id="deleteModal">
     <div class="modal">
@@ -177,6 +205,12 @@ const formatPrice = (price: number) => {
     color: var(--text-muted);
   }
 
+  .header-buttons {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
   .btn-primary {
     display: inline-flex;
     align-items: center;
@@ -192,6 +226,138 @@ const formatPrice = (price: number) => {
   .btn-primary:hover {
     background: #c4955e;
     transform: translateY(-2px);
+  }
+
+  .btn-translate-bulk {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    font-size: inherit;
+  }
+
+  .btn-translate-bulk:hover:not(:disabled) {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  }
+
+  .btn-translate-bulk:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .btn-translate-bulk .spinner-inline {
+    width: 16px;
+    height: 16px;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    display: inline-block;
+  }
+
+  /* Translate progress modal */
+  .translate-progress-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .translate-progress-overlay.show {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .translate-progress {
+    background: var(--primary);
+    border-radius: var(--radius);
+    padding: 32px;
+    max-width: 500px;
+    width: 90%;
+    border: 1px solid var(--border);
+    text-align: center;
+  }
+
+  .translate-progress h3 {
+    font-size: 1.3rem;
+    margin-bottom: 12px;
+  }
+
+  .translate-progress p {
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .translate-progress .progress-bar {
+    width: 100%;
+    height: 8px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 4px;
+    margin: 20px 0;
+    overflow: hidden;
+  }
+
+  .translate-progress .progress-fill {
+    height: 100%;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+  }
+
+  .translate-results {
+    text-align: left;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-top: 16px;
+    font-size: 0.85rem;
+  }
+
+  .translate-results .result-item {
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .result-success {
+    color: #22c55e;
+  }
+
+  .result-error {
+    color: #ef4444;
+  }
+
+  .btn-close-progress {
+    margin-top: 20px;
+    padding: 10px 24px;
+    background: var(--caramel);
+    color: var(--bg-dark);
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-close-progress:hover {
+    background: #c4955e;
   }
 
   /* Filters */
@@ -639,6 +805,83 @@ const formatPrice = (price: number) => {
     if (e.target === deleteModal) {
       deleteModal.classList.remove('show');
       productIdToDelete = null;
+    }
+  });
+
+  // Translate All Products
+  const translateAllBtn = document.getElementById('translateAllBtn') as HTMLButtonElement;
+  const translateModal = document.getElementById('translateModal');
+  const translateTitle = document.getElementById('translateTitle');
+  const translateStatus = document.getElementById('translateStatus');
+  const translateProgress = document.getElementById('translateProgress');
+  const translateResults = document.getElementById('translateResults');
+  const closeTranslateModal = document.getElementById('closeTranslateModal');
+
+  translateAllBtn?.addEventListener('click', async () => {
+    if (!confirm('Deseja traduzir TODOS os produtos ativos para Inglês, Espanhol e Alemão via IA?\n\nIsso pode levar alguns minutos dependendo da quantidade de produtos.')) {
+      return;
+    }
+
+    translateAllBtn.disabled = true;
+    translateAllBtn.innerHTML = '<span class="spinner-inline"></span> Traduzindo...';
+    
+    // Show modal
+    translateModal?.classList.add('show');
+    if (translateTitle) translateTitle.textContent = 'Traduzindo Produtos...';
+    if (translateStatus) translateStatus.textContent = 'Enviando requisição para a IA...';
+    if (translateProgress) translateProgress.style.width = '10%';
+    if (translateResults) { translateResults.style.display = 'none'; translateResults.innerHTML = ''; }
+    if (closeTranslateModal) closeTranslateModal.style.display = 'none';
+
+    try {
+      if (translateProgress) translateProgress.style.width = '30%';
+      if (translateStatus) translateStatus.textContent = 'Processando traduções...';
+
+      const res = await fetch('/api/translate-all', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ overwrite: false })
+      });
+
+      const data = await res.json();
+
+      if (translateProgress) translateProgress.style.width = '100%';
+
+      if (data.error) {
+        if (translateTitle) translateTitle.textContent = 'Erro na Tradução';
+        if (translateStatus) translateStatus.textContent = data.error;
+      } else {
+        if (translateTitle) translateTitle.textContent = 'Tradução Concluída!';
+        if (translateStatus) translateStatus.textContent = `${data.translated} produtos traduzidos, ${data.skipped} já tinham tradução.`;
+
+        // Show results
+        if (translateResults && data.results && data.results.length > 0) {
+          translateResults.style.display = 'block';
+          translateResults.innerHTML = data.results.map((r: any) => `
+            <div class="result-item">
+              <span>${r.title?.substring(0, 40) || 'Produto'}${(r.title?.length || 0) > 40 ? '...' : ''}</span>
+              <span class="${r.success ? 'result-success' : 'result-error'}">${r.success ? `✓ ${r.translated} campos` : '✗ Erro'}</span>
+            </div>
+          `).join('');
+        }
+      }
+    } catch (err: any) {
+      if (translateTitle) translateTitle.textContent = 'Erro';
+      if (translateStatus) translateStatus.textContent = err.message || 'Erro ao traduzir';
+    } finally {
+      translateAllBtn.disabled = false;
+      translateAllBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> Traduzir Todos (IA)`;
+      if (closeTranslateModal) closeTranslateModal.style.display = 'inline-block';
+    }
+  });
+
+  closeTranslateModal?.addEventListener('click', () => {
+    translateModal?.classList.remove('show');
+  });
+
+  translateModal?.addEventListener('click', (e) => {
+    if (e.target === translateModal) {
+      translateModal.classList.remove('show');
     }
   });
 
