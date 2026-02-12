@@ -174,8 +174,8 @@ const currentSeo = seoData[category.slug as keyof typeof seoData] || {
           <span class="stat-label">Produtos</span>
         </div>
         <div class="stat">
-          <span class="stat-number">2</span>
-          <span class="stat-label">Anos Garantia</span>
+          <span class="stat-number">{isAcessorios ? '3' : '2'}</span>
+          <span class="stat-label">{isAcessorios ? 'Meses Garantia' : 'Anos Garantia'}</span>
         </div>
         <div class="stat">
           <span class="stat-number">25+</span>

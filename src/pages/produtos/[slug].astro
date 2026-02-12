@@ -388,8 +388,8 @@ const seoKeywords = product.seo_keywords || `${product.title.toLowerCase()}, ${i
             </svg>
           </div>
           <span class="why-number">02</span>
-          <h3>2 Anos de Garantia</h3>
-          <p>Garantia completa de fábrica com assistência técnica especializada e peças de reposição.</p>
+          <h3>{isAcessorio ? '3 Meses de Garantia' : '2 Anos de Garantia'}</h3>
+          <p>{isAcessorio ? 'Garantia de fábrica para acessórios com assistência técnica especializada.' : 'Garantia completa de fábrica com assistência técnica especializada e peças de reposição.'}</p>
         </div>
         
         <div class="why-card">
