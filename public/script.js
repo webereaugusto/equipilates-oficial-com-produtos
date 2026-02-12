@@ -572,7 +572,7 @@ function initHeroSlider() {
                 number: '01',
                 tag: 'FÁBRICA LÍDER DESDE 2006',
                 title: ['EQUIPAMENTOS DE PILATES', 'PROFISSIONAIS PARA SEU ESTÚDIO'],
-                description: 'Linha Clássica e Contemporânea com 2 anos de garantia.<br/>Mais de 30.000 estúdios equipados em 24+ países.',
+                description: 'Linha Clássica e Contemporânea com 2 anos de garantia.<br/>Mais de 35.000 estúdios equipados em 25+ países.',
                 cta1: { text: 'Solicitar Orçamento', link: buildWhatsAppLink('Olá, vim pelo site da Equipilates e gostaria de solicitar um orçamento.') },
                 cta2: { text: 'Veja Mais', link: '#diferencial' }
             },
@@ -588,7 +588,7 @@ function initHeroSlider() {
                 number: '03',
                 tag: 'LÍDER GLOBAL',
                 title: ['A MAIOR FÁBRICA', 'DE PILATES DA AMÉRICA LATINA'],
-                description: 'Desde 2006 exportando para 24+ países. Fábrica própria de 5.000m²<br/>com tecnologia de ponta em Resende-RJ.',
+                description: 'Desde 2006 exportando para 25+ países. Fábrica própria de 5.000m²<br/>com tecnologia de ponta em Resende-RJ.',
                 cta1: { text: 'Veja Mais', link: '#diferencial' },
                 cta2: { text: 'Falar com Especialista', link: buildWhatsAppLink('Olá, gostaria de conhecer mais sobre a Equipilates.') }
             }
@@ -598,7 +598,7 @@ function initHeroSlider() {
                 number: '01',
                 tag: 'LEADING FACTORY SINCE 2006',
                 title: ['PILATES EQUIPMENT', 'PROFESSIONAL FOR YOUR STUDIO'],
-                description: 'Classic and Contemporary Lines with 2-year warranty.<br/>Over 30,000 studios equipped in 24+ countries.',
+                description: 'Classic and Contemporary Lines with 2-year warranty.<br/>Over 35,000 studios equipped in 25+ countries.',
                 cta1: { text: 'Request a Quote', link: buildWhatsAppLink('Hello, I would like a quote for Pilates equipment.') },
                 cta2: { text: 'See More', link: '#diferencial' }
             },
@@ -614,7 +614,7 @@ function initHeroSlider() {
                 number: '03',
                 tag: 'GLOBAL LEADER',
                 title: ['THE LARGEST PILATES', 'FACTORY IN LATIN AMERICA'],
-                description: 'Exporting to 24+ countries since 2006. Own 5,000m² factory<br/>with cutting-edge technology in Brazil.',
+                description: 'Exporting to 25+ countries since 2006. Own 5,000m² factory<br/>with cutting-edge technology in Brazil.',
                 cta1: { text: 'See More', link: '#diferencial' },
                 cta2: { text: 'Talk to an Expert', link: buildWhatsAppLink('Hello, I would like to learn more about Equipilates.') }
             }
@@ -624,7 +624,7 @@ function initHeroSlider() {
                 number: '01',
                 tag: 'FÁBRICA LÍDER DESDE 2006',
                 title: ['EQUIPOS DE PILATES', 'PROFESIONALES PARA SU ESTUDIO'],
-                description: 'Línea Clásica y Contemporánea con 2 años de garantía.<br/>Más de 30.000 estudios equipados en 24+ países.',
+                description: 'Línea Clásica y Contemporánea con 2 años de garantía.<br/>Más de 35.000 estudios equipados en 25+ países.',
                 cta1: { text: 'Solicitar Cotización', link: buildWhatsAppLink('Hola, quisiera una cotización para equipos de Pilates.') },
                 cta2: { text: 'Ver Más', link: '#diferencial' }
             },
@@ -640,7 +640,7 @@ function initHeroSlider() {
                 number: '03',
                 tag: 'LÍDER GLOBAL',
                 title: ['LA MAYOR FÁBRICA', 'DE PILATES DE LATINOAMÉRICA'],
-                description: 'Exportando a 24+ países desde 2006. Fábrica propia de 5.000m²<br/>con tecnología de punta en Brasil.',
+                description: 'Exportando a 25+ países desde 2006. Fábrica propia de 5.000m²<br/>con tecnología de punta en Brasil.',
                 cta1: { text: 'Ver Más', link: '#diferencial' },
                 cta2: { text: 'Hablar con Experto', link: buildWhatsAppLink('Hola, me gustaría conocer más sobre Equipilates.') }
             }
@@ -650,7 +650,7 @@ function initHeroSlider() {
                 number: '01',
                 tag: 'FÜHRENDE FABRIK SEIT 2006',
                 title: ['PILATES-GERÄTE', 'PROFESSIONELL FÜR IHR STUDIO'],
-                description: 'Klassische und Zeitgenössische Linien mit 2 Jahren Garantie.<br/>Über 30.000 Studios in 24+ Ländern ausgestattet.',
+                description: 'Klassische und Zeitgenössische Linien mit 2 Jahren Garantie.<br/>Über 35.000 Studios in 25+ Ländern ausgestattet.',
                 cta1: { text: 'Angebot Anfordern', link: buildWhatsAppLink('Hallo, ich möchte ein Angebot für Pilates-Geräte.') },
                 cta2: { text: 'Mehr Sehen', link: '#diferencial' }
             },
@@ -666,7 +666,7 @@ function initHeroSlider() {
                 number: '03',
                 tag: 'GLOBALER MARKTFÜHRER',
                 title: ['DIE GRÖSSTE PILATES-', 'FABRIK IN LATEINAMERIKA'],
-                description: 'Seit 2006 in 24+ Länder exportierend. Eigene 5.000m² Fabrik<br/>mit modernster Technologie in Brasilien.',
+                description: 'Seit 2006 in 25+ Länder exportierend. Eigene 5.000m² Fabrik<br/>mit modernster Technologie in Brasilien.',
                 cta1: { text: 'Mehr Sehen', link: '#diferencial' },
                 cta2: { text: 'Mit Experten Sprechen', link: buildWhatsAppLink('Hallo, ich möchte mehr über Equipilates erfahren.') }
             }
