@@ -9,7 +9,8 @@
     "astro": "astro",
     "backup": "node scripts/backup.js",
     "seed:acessorios": "node --env-file=.env.local scripts/seed-acessorios-pdf.js",
-    "translate:manual:apply": "node --env-file=.env.local scripts/apply-manual-product-translations.js"
+    "translate:manual:apply": "node --env-file=.env.local scripts/apply-manual-product-translations.js",
+    "kb:export": "node --env-file=.env.local scripts/export-knowledge-base.mjs"
   },
   "dependencies": {
     "@astrojs/react": "^4.4.2",
