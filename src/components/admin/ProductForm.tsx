@@ -40,8 +40,6 @@ export default function ProductForm({ product, categories, hideHeader = false }:
     detailed_description_de: (product as any)?.detailed_description_de || '',
   });
 
-  const [translating, setTranslating] = useState<string | null>(null); // 'en', 'es', 'de', 'all' or null
-
   const [newSpec, setNewSpec] = useState('');
   const [newOptionalKey, setNewOptionalKey] = useState('');
   const [newOptionalValue, setNewOptionalValue] = useState('');
@@ -286,65 +284,11 @@ export default function ProductForm({ product, categories, hideHeader = false }:
     }
   };
 
-  // AI Translation
-  const translateWithAI = async (targetLangs: string[]) => {
-    if (!product?.id) {
-      setError('Salve o produto primeiro antes de traduzir.');
-      return;
-    }
-    
-    const langLabel = targetLangs.length === 3 ? 'all' : targetLangs[0];
-    setTranslating(langLabel);
-    setError(null);
-
-    try {
-      const res = await fetch('/api/translate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          productId: product.id, 
-          languages: targetLangs,
-          overwrite: true 
-        })
-      });
-
-      const data = await res.json();
-
-      if (!res.ok || data.error) {
-        throw new Error(data.error || 'Erro na tradução');
-      }
-
-      // Reload translated data from Supabase
-      const { data: updated } = await supabase
-        .from('products')
-        .select('*')
-        .eq('id', product.id)
-        .single();
-
-      if (updated) {
-        const translationFields = [
-          'title_en', 'title_es', 'title_de',
-          'short_description_en', 'short_description_es', 'short_description_de',
-          'detailed_description_en', 'detailed_description_es', 'detailed_description_de'
-        ];
-        
-        const updates: Record<string, string> = {};
-        for (const field of translationFields) {
-          if ((updated as any)[field]) {
-            updates[field] = (updated as any)[field];
-          }
-        }
-        
-        setFormData(prev => ({ ...prev, ...updates }));
-      }
-
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
-    } catch (err: any) {
-      setError(err.message || 'Erro ao traduzir');
-    } finally {
-      setTranslating(null);
-    }
+  const isLangFullyTranslated = (lang: string) => {
+    const title = formData[`title_${lang}` as keyof typeof formData] as string;
+    const shortDesc = formData[`short_description_${lang}` as keyof typeof formData] as string;
+    const detailedDesc = formData[`detailed_description_${lang}` as keyof typeof formData] as string;
+    return !!(title && shortDesc && detailedDesc);
   };
 
   const formatCurrency = (value: string) => {
@@ -771,42 +715,12 @@ export default function ProductForm({ product, categories, hideHeader = false }:
 
         {/* Translations Tab */}
         <div className={`tab-content ${activeTab === 'translations' ? 'active' : ''}`}>
-          {/* Global translate all button */}
           <div className="translate-header">
             <div className="translate-header-info">
               <h3>Traduções do Produto</h3>
               <p className="section-desc">Traduza título, descrição curta e descrição detalhada para o site internacional.</p>
             </div>
-            <button
-              type="button"
-              className="btn-translate-all"
-              onClick={() => translateWithAI(['en', 'es', 'de'])}
-              disabled={!!translating || !isEditing}
-              title={!isEditing ? 'Salve o produto antes de traduzir' : 'Traduzir todos os idiomas via IA'}
-            >
-              {translating === 'all' ? (
-                <><span className="spinner"></span> Traduzindo...</>
-              ) : (
-                <>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18">
-                    <path d="M5 8l6 6M4 14l6-6 2-3M2 5h12M7 2h1M22 22l-5-10-5 10M14 18h6"/>
-                  </svg>
-                  Traduzir Todos (IA)
-                </>
-              )}
-            </button>
           </div>
-
-          {!isEditing && (
-            <div className="alert alert-info">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="16" x2="12" y2="12"/>
-                <line x1="12" y1="8" x2="12.01" y2="8"/>
-              </svg>
-              <span>Salve o produto primeiro para habilitar a tradução automática via IA.</span>
-            </div>
-          )}
 
           {/* English */}
           <div className="translation-block">
@@ -814,27 +728,10 @@ export default function ProductForm({ product, categories, hideHeader = false }:
               <div className="lang-badge">
                 <span className="lang-flag">🇬🇧</span>
                 <span className="lang-name">English</span>
-                <span className={`lang-status ${formData.title_en ? 'translated' : 'empty'}`}>
-                  {formData.title_en ? 'Traduzido' : 'Pendente'}
+                <span className={`lang-status ${isLangFullyTranslated('en') ? 'translated' : 'empty'}`}>
+                  {isLangFullyTranslated('en') ? 'Completo' : 'Pendente'}
                 </span>
               </div>
-              <button
-                type="button"
-                className="btn-translate-single"
-                onClick={() => translateWithAI(['en'])}
-                disabled={!!translating || !isEditing}
-              >
-                {translating === 'en' ? (
-                  <><span className="spinner-sm"></span></>
-                ) : (
-                  <>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
-                      <path d="M5 8l6 6M4 14l6-6 2-3M2 5h12M7 2h1M22 22l-5-10-5 10M14 18h6"/>
-                    </svg>
-                    Traduzir EN
-                  </>
-                )}
-              </button>
             </div>
             <div className="translation-fields">
               <div className="form-group full">
@@ -874,27 +771,10 @@ export default function ProductForm({ product, categories, hideHeader = false }:
               <div className="lang-badge">
                 <span className="lang-flag">🇪🇸</span>
                 <span className="lang-name">Español</span>
-                <span className={`lang-status ${formData.title_es ? 'translated' : 'empty'}`}>
-                  {formData.title_es ? 'Traduzido' : 'Pendente'}
+                <span className={`lang-status ${isLangFullyTranslated('es') ? 'translated' : 'empty'}`}>
+                  {isLangFullyTranslated('es') ? 'Completo' : 'Pendente'}
                 </span>
               </div>
-              <button
-                type="button"
-                className="btn-translate-single"
-                onClick={() => translateWithAI(['es'])}
-                disabled={!!translating || !isEditing}
-              >
-                {translating === 'es' ? (
-                  <><span className="spinner-sm"></span></>
-                ) : (
-                  <>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
-                      <path d="M5 8l6 6M4 14l6-6 2-3M2 5h12M7 2h1M22 22l-5-10-5 10M14 18h6"/>
-                    </svg>
-                    Traduzir ES
-                  </>
-                )}
-              </button>
             </div>
             <div className="translation-fields">
               <div className="form-group full">
@@ -934,27 +814,10 @@ export default function ProductForm({ product, categories, hideHeader = false }:
               <div className="lang-badge">
                 <span className="lang-flag">🇩🇪</span>
                 <span className="lang-name">Deutsch</span>
-                <span className={`lang-status ${formData.title_de ? 'translated' : 'empty'}`}>
-                  {formData.title_de ? 'Traduzido' : 'Pendente'}
+                <span className={`lang-status ${isLangFullyTranslated('de') ? 'translated' : 'empty'}`}>
+                  {isLangFullyTranslated('de') ? 'Completo' : 'Pendente'}
                 </span>
               </div>
-              <button
-                type="button"
-                className="btn-translate-single"
-                onClick={() => translateWithAI(['de'])}
-                disabled={!!translating || !isEditing}
-              >
-                {translating === 'de' ? (
-                  <><span className="spinner-sm"></span></>
-                ) : (
-                  <>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
-                      <path d="M5 8l6 6M4 14l6-6 2-3M2 5h12M7 2h1M22 22l-5-10-5 10M14 18h6"/>
-                    </svg>
-                    Traduzir DE
-                  </>
-                )}
-              </button>
             </div>
             <div className="translation-fields">
               <div className="form-group full">
@@ -1679,40 +1542,6 @@ export default function ProductForm({ product, categories, hideHeader = false }:
           margin-bottom: 4px;
         }
 
-        .btn-translate-all {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 12px 20px;
-          background: linear-gradient(135deg, #6366f1, #8b5cf6);
-          color: #fff;
-          border-radius: 10px;
-          font-weight: 600;
-          font-size: 0.9rem;
-          transition: all 0.2s;
-          white-space: nowrap;
-          border: none;
-          cursor: pointer;
-        }
-
-        .btn-translate-all:hover:not(:disabled) {
-          background: linear-gradient(135deg, #4f46e5, #7c3aed);
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-        }
-
-        .btn-translate-all:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-          transform: none;
-        }
-
-        .alert-info {
-          background: rgba(59, 130, 246, 0.1);
-          border: 1px solid rgba(59, 130, 246, 0.3);
-          color: #60a5fa;
-        }
-
         .translation-block {
           background: rgba(255,255,255,0.02);
           border: 1px solid rgba(255,255,255,0.08);
@@ -1762,31 +1591,6 @@ export default function ProductForm({ product, categories, hideHeader = false }:
           color: #9ca3af;
         }
 
-        .btn-translate-single {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          padding: 8px 14px;
-          background: rgba(99, 102, 241, 0.1);
-          color: #818cf8;
-          border: 1px solid rgba(99, 102, 241, 0.2);
-          border-radius: 8px;
-          font-weight: 500;
-          font-size: 0.85rem;
-          transition: all 0.2s;
-          cursor: pointer;
-        }
-
-        .btn-translate-single:hover:not(:disabled) {
-          background: rgba(99, 102, 241, 0.2);
-          border-color: rgba(99, 102, 241, 0.4);
-        }
-
-        .btn-translate-single:disabled {
-          opacity: 0.4;
-          cursor: not-allowed;
-        }
-
         .translation-fields {
           padding: 20px;
           display: flex;
@@ -1803,16 +1607,6 @@ export default function ProductForm({ product, categories, hideHeader = false }:
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
-        }
-
-        .spinner-sm {
-          width: 14px;
-          height: 14px;
-          border: 2px solid transparent;
-          border-top-color: currentColor;
-          border-radius: 50%;
-          animation: spin 0.8s linear infinite;
-          display: inline-block;
         }
 
         /* Responsive */
@@ -1880,22 +1674,6 @@ export default function ProductForm({ product, categories, hideHeader = false }:
 
           .translate-header {
             flex-direction: column;
-          }
-
-          .btn-translate-all {
-            width: 100%;
-            justify-content: center;
-          }
-
-          .translation-block-header {
-            flex-direction: column;
-            gap: 12px;
-            align-items: flex-start;
-          }
-
-          .btn-translate-single {
-            width: 100%;
-            justify-content: center;
           }
         }
       `}</style>
