@@ -27,7 +27,7 @@
 - **faq.a4**: Exportamos equipamentos de Pilates para mais de 25 países, incluindo Estados Unidos, França, Reino Unido, Coreia do Sul, Portugal, Espanha, Alemanha e outros mercados exigentes.
 - **faq.a5**: Nossa fábrica de 5.000m² está localizada em Resende-RJ, no bairro Nova Resende. Fabricamos todos os equipamentos de Pilates com controle de qualidade rigoroso.
 - **faq.a6**: Nossos equipamentos possuem 2 anos de garantia direto de fábrica. Acessórios possuem garantia de 3 meses. Além disso, oferecemos assistência técnica especializada em todo o Brasil.
-- **faq.a9**: Entre em contato pelo WhatsApp (21) 96732-9318, disponível 24 horas por dia.
+- **faq.a9**: Entre em contato pelo WhatsApp (24) 99845-0039, disponível 24 horas por dia.
 - **support.item4.title**: Fábricas no Brasil e na Espanha
 - **support.item4.text**: Única empresa de Pilates com fábricas em 2 continentes
 - **faq.q7**: Quais são as formas de pagamento?
@@ -39,7 +39,7 @@
 - **faq.a4**: We export Pilates equipment to over 25 countries, including the United States, France, United Kingdom, South Korea, Portugal, Spain, Germany and other demanding markets.
 - **faq.a5**: Our 2,500m² factory is located in Resende-RJ, Brazil, in the Nova Resende neighborhood. We manufacture all Pilates equipment with rigorous quality control.
 - **faq.a6**: Our equipment comes with a 2-year factory-direct warranty. Accessories come with a 3-month warranty. Plus specialized technical assistance throughout Brazil.
-- **faq.a9**: Contact us via WhatsApp (21) 96732-9318, available 24 hours a day.
+- **faq.a9**: Contact us via WhatsApp (24) 99845-0039, available 24 hours a day.
 - **support.item4.title**: Factories in Brazil and Spain
 - **support.item4.text**: Only Pilates company with factories on 2 continents
 - **faq.q7**: What are the payment options?
@@ -51,7 +51,7 @@
 - **faq.a4**: Exportamos equipos de Pilates a más de 25 países, incluyendo Estados Unidos, Francia, Reino Unido, Corea del Sur, Portugal, España, Alemania y otros mercados exigentes.
 - **faq.a5**: Nuestra fábrica de 5.000m² está ubicada en Resende-RJ, Brasil, en el barrio Nova Resende. Fabricamos todos los equipos de Pilates con riguroso control de calidad.
 - **faq.a6**: Nuestros equipos poseen 2 años de garantía directa de fábrica. Los accesorios tienen garantía de 3 meses. Además, ofrecemos asistencia técnica especializada en todo Brasil.
-- **faq.a9**: Contáctanos por WhatsApp (21) 96732-9318, disponible 24 horas al día.
+- **faq.a9**: Contáctanos por WhatsApp (24) 99845-0039, disponible 24 horas al día.
 - **support.item4.title**: Fábricas en Brasil y España
 - **support.item4.text**: Única empresa de Pilates con fábricas en 2 continentes
 - **faq.q7**: ¿Cuáles son las formas de pago?
@@ -63,7 +63,7 @@
 - **faq.a4**: Wir exportieren Pilates-Geräte in über 25 Länder, darunter die USA, Frankreich, Großbritannien, Südkorea, Portugal, Spanien, Deutschland und andere anspruchsvolle Märkte.
 - **faq.a5**: Unsere 5.000m² große Fabrik befindet sich in Resende-RJ, Brasilien, im Viertel Nova Resende. Wir fertigen alle Pilates-Geräte mit strenger Qualitätskontrolle.
 - **faq.a6**: Unsere Geräte haben 2 Jahre Direktgarantie ab Werk. Zubehör hat 3 Monate Garantie. Dazu spezialisierter technischer Support in ganz Brasilien.
-- **faq.a9**: Kontaktieren Sie uns über WhatsApp (21) 96732-9318, 24 Stunden am Tag verfügbar.
+- **faq.a9**: Kontaktieren Sie uns über WhatsApp (24) 99845-0039, 24 Stunden am Tag verfügbar.
 - **support.item4.title**: Fabriken in Brasilien und Spanien
 - **support.item4.text**: Einziges Pilates-Unternehmen mit Fabriken auf 2 Kontinenten
 - **faq.q7**: Welche Zahlungsoptionen gibt es?
@@ -115,7 +115,7 @@
 - **faq.a6**: Nossos equipamentos possuem 2 anos de garantia direto de fábrica. Acessórios possuem garantia de 3 meses. Além disso, oferecemos assistência técnica especializada em todo o Brasil.
 - **faq.a7**: Trabalhamos com parcelamento flexível de até 24x no site e condições especiais de até 36x em compras diretas.
 - **faq.a8**: Sim! Atendemos todo o território nacional com frete para todas as regiões.
-- **faq.a9**: Entre em contato pelo WhatsApp (21) 96732-9318, disponível 24 horas por dia.
+- **faq.a9**: Entre em contato pelo WhatsApp (24) 99845-0039, disponível 24 horas por dia.
 - **faq.label**: PERGUNTAS FREQUENTES
 - **faq.q1**: Qual a diferença entre Reformer e Cadillac?
 - **faq.q2**: Equipamentos de Pilates duram quanto tempo?
@@ -322,7 +322,7 @@
 - **faq.a6**: Our equipment comes with a 2-year factory-direct warranty. Accessories come with a 3-month warranty. Plus specialized technical assistance throughout Brazil.
 - **faq.a7**: We work with flexible installment plans up to 24x on the website and special conditions up to 36x for direct purchases.
 - **faq.a8**: Yes! We serve the entire national territory with shipping to all regions.
-- **faq.a9**: Contact us via WhatsApp (21) 96732-9318, available 24 hours a day.
+- **faq.a9**: Contact us via WhatsApp (24) 99845-0039, available 24 hours a day.
 - **faq.label**: FREQUENTLY ASKED QUESTIONS
 - **faq.q1**: What's the difference between Reformer and Cadillac?
 - **faq.q2**: How long does Pilates equipment last?
@@ -529,7 +529,7 @@
 - **faq.a6**: Nuestros equipos poseen 2 años de garantía directa de fábrica. Los accesorios tienen garantía de 3 meses. Además, ofrecemos asistencia técnica especializada en todo Brasil.
 - **faq.a7**: Trabajamos con financiamiento flexible hasta 24x en el sitio y condiciones especiales hasta 36x en compras directas.
 - **faq.a8**: ¡Sí! Atendemos todo el territorio nacional con envío a todas las regiones.
-- **faq.a9**: Contáctanos por WhatsApp (21) 96732-9318, disponible 24 horas al día.
+- **faq.a9**: Contáctanos por WhatsApp (24) 99845-0039, disponible 24 horas al día.
 - **faq.label**: PREGUNTAS FRECUENTES
 - **faq.q1**: ¿Cuál es la diferencia entre Reformer y Cadillac?
 - **faq.q2**: ¿Cuánto duran los equipos de Pilates?
@@ -736,7 +736,7 @@
 - **faq.a6**: Unsere Geräte haben 2 Jahre Direktgarantie ab Werk. Zubehör hat 3 Monate Garantie. Dazu spezialisierter technischer Support in ganz Brasilien.
 - **faq.a7**: Wir arbeiten mit flexiblen Ratenzahlungen bis zu 24x auf der Website und Sonderkonditionen bis zu 36x bei Direktkäufen.
 - **faq.a8**: Ja! Wir bedienen das gesamte nationale Territorium mit Versand in alle Regionen.
-- **faq.a9**: Kontaktieren Sie uns über WhatsApp (21) 96732-9318, 24 Stunden am Tag verfügbar.
+- **faq.a9**: Kontaktieren Sie uns über WhatsApp (24) 99845-0039, 24 Stunden am Tag verfügbar.
 - **faq.label**: HÄUFIG GESTELLTE FRAGEN
 - **faq.q1**: Was ist der Unterschied zwischen Reformer und Cadillac?
 - **faq.q2**: Wie lange halten Pilates-Geräte?
@@ -905,12 +905,12 @@
 
 ## 3. Contato e configurações (site_settings)
 
-- **WhatsApp (cadastro)**: +5521967329318
+- **WhatsApp (cadastro)**: +5524998450039
 - **Mensagem sugerida (Europa)**: consulta sobre equipamentos / orçamento, mencionando o produto de interesse.
 
 | Chave | Valor (não divulgar preços ao usuário final) |
 | --- | --- |
-| whatsapp_number | 5521967329318 |
+| whatsapp_number | 5524998450039 |
 | show_prices | _omitido na base de conhecimento pública_ |
 
 ---

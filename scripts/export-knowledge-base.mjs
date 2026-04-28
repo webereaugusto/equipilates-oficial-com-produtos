@@ -209,7 +209,7 @@ async function main() {
 
   md += `---\n\n`;
   md += `## 3. Contato e configurações (site_settings)\n\n`;
-  const wa = settings.whatsapp_number || '5521967329318';
+  const wa = settings.whatsapp_number || '5524998450039';
   md += `- **WhatsApp (cadastro)**: +${wa.replace(/\D/g, '')}\n`;
   md += `- **Mensagem sugerida (Europa)**: consulta sobre equipamentos / orçamento, mencionando o produto de interesse.\n`;
   if (Object.keys(settings).length > 0) {

@@ -315,7 +315,7 @@ MIT License - Copyright (c) 2024 Equipilates
 
 - 🌐 **Website:** [equipilates.com.br](https://www.equipilates.com.br)
 - 📧 **Email:** contato@equipilates.com.br
-- 📱 **WhatsApp:** [+55 21 96732-9318](https://wa.me/5521967329318)
+- 📱 **WhatsApp:** [+55 24 99845-0039](https://wa.me/5524998450039)
 - 📍 **Endereço:** Resende, Rio de Janeiro, Brasil
 - 🏭 **Fábrica:** 2.500m² em Resende-RJ
 

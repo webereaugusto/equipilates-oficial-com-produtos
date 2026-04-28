@@ -559,7 +559,7 @@ function initHeroSlider() {
     const autoPlayInterval = 9000; // 9 seconds per slide
     let autoPlayTimer = null;
     
-    const WHATSAPP_NUMBER = '5521967329318';
+    const WHATSAPP_NUMBER = '5524998450039';
     function buildWhatsAppLink(text) {
         const msg = encodeURIComponent(text);
         return `https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`;
@@ -1391,7 +1391,7 @@ function initUpgradeWizard() {
     const secondaryBtn = document.getElementById('wizardSecondaryCta');
     const mailtoBtn = document.getElementById('wizardMailtoCta');
 
-    const WHATSAPP_NUMBER = '5521967329318';
+    const WHATSAPP_NUMBER = '5524998450039';
     const wa = (text) => `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
 
     const kitBySpace = {
