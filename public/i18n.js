@@ -12,6 +12,8 @@ const SUPPORTED_LANGS = ['pt-BR', 'en', 'es', 'de'];
 // Idioma padrão
 let currentLang = localStorage.getItem('language') || 'pt-BR';
 
+const ASSET_VERSION = '20260521-countries';
+
 // Flag para indicar se as traduções estão carregadas
 let translationsReady = false;
 
@@ -22,7 +24,7 @@ async function loadTranslations(lang) {
     }
     
     try {
-        const response = await fetch(`locales/${lang}.json`);
+        const response = await fetch(`locales/${lang}.json?v=${ASSET_VERSION}`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
