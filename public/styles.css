@@ -7846,36 +7846,164 @@ a.gallery-item {
     line-height: 1.5;
 }
 
-.countries-list {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 15px;
-    margin-top: 50px;
+.countries-presence {
+    margin: 60px auto 0;
+    padding: 52px 44px;
+    max-width: 1040px;
+    color: #ffffff;
+    background:
+        radial-gradient(circle at 15% 10%, rgba(255, 148, 63, 0.18), transparent 28%),
+        linear-gradient(145deg, #1d1917 0%, #2b2622 45%, #171514 100%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 28px;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.22);
+    overflow: hidden;
+    position: relative;
 }
 
-.country-flag {
-    width: 48px;
-    height: 36px;
-    border-radius: 4px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    transition: transform 0.3s ease;
-    cursor: default;
+.countries-presence::before,
+.countries-presence::after {
+    content: '';
+    position: absolute;
+    width: 190px;
+    height: 190px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 50%;
+    pointer-events: none;
 }
 
-.country-flag:hover {
-    transform: scale(1.15);
+.countries-presence::before {
+    top: -95px;
+    right: -70px;
 }
 
-.country-more {
+.countries-presence::after {
+    bottom: -115px;
+    left: -75px;
+}
+
+.countries-presence-header {
+    position: relative;
+    z-index: 1;
+    margin-bottom: 36px;
+}
+
+.countries-brand {
+    display: block;
     font-family: 'Sora', sans-serif;
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--caramel);
-    padding: 5px 15px;
-    background: rgba(255, 148, 63, 0.1);
+    font-size: clamp(32px, 5vw, 58px);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 0.02em;
+}
+
+.countries-title {
+    margin-top: 12px;
+    font-family: 'Sora', sans-serif;
+    font-size: clamp(24px, 3.4vw, 42px);
+    font-weight: 800;
+    line-height: 1.05;
+    text-transform: uppercase;
+}
+
+.countries-title strong {
+    color: #ff943f;
+}
+
+.countries-presence-grid {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 18px 20px;
+}
+
+.country-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.country-item-flag {
+    width: 72px;
+    height: 52px;
+    object-fit: cover;
     border-radius: 8px;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.country-item:hover .country-item-flag {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 12px 24px rgba(255, 148, 63, 0.25);
+}
+
+.country-item-name {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+}
+
+.countries-tagline {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin: 42px auto 0;
+    color: #ffffff;
+    font-family: 'Sora', sans-serif;
+    font-size: clamp(18px, 2.8vw, 30px);
+    font-weight: 800;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.countries-plane {
+    flex: 0 0 auto;
+    color: #d6a061;
+}
+
+@media (max-width: 980px) {
+    .countries-presence {
+        padding: 42px 28px;
+    }
+
+    .countries-presence-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 560px) {
+    .countries-presence {
+        margin-top: 42px;
+        padding: 34px 18px;
+        border-radius: 22px;
+    }
+
+    .countries-presence-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px 10px;
+    }
+
+    .country-item-flag {
+        width: 62px;
+        height: 44px;
+    }
+
+    .country-item-name {
+        font-size: 12px;
+    }
+
+    .countries-tagline {
+        flex-direction: column;
+        gap: 8px;
+    }
 }
 
 /* CTA dentro da seção Stats */

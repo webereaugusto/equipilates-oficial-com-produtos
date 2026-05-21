@@ -572,7 +572,7 @@ function initHeroSlider() {
                 number: '01',
                 tag: 'FÁBRICA LÍDER DESDE 2006',
                 title: ['EQUIPAMENTOS DE PILATES', 'PROFISSIONAIS PARA SEU ESTÚDIO'],
-                description: 'Linha Clássica e Contemporânea com 2 anos de garantia.<br/>Mais de 35.000 estúdios equipados em 25+ países.',
+                description: 'Linha Clássica e Contemporânea com 2 anos de garantia.<br/>Mais de 35.000 estúdios equipados em 36 países.',
                 cta1: { text: 'Solicitar Orçamento', link: buildWhatsAppLink('Olá, vim pelo site da Equipilates e gostaria de solicitar um orçamento.') },
                 cta2: { text: 'Veja Mais', link: '#diferencial' }
             },
@@ -588,7 +588,7 @@ function initHeroSlider() {
                 number: '03',
                 tag: 'LÍDER GLOBAL',
                 title: ['A MAIOR FÁBRICA', 'DE PILATES DA AMÉRICA LATINA'],
-                description: 'Desde 2006 exportando para 25+ países. Fábrica própria de 5.000m²<br/>com tecnologia de ponta em Resende-RJ.',
+                description: 'Desde 2006 presente em 36 países. Fábrica própria de 5.000m²<br/>com tecnologia de ponta em Resende-RJ.',
                 cta1: { text: 'Veja Mais', link: '#diferencial' },
                 cta2: { text: 'Falar com Especialista', link: buildWhatsAppLink('Olá, gostaria de conhecer mais sobre a Equipilates.') }
             }
@@ -598,7 +598,7 @@ function initHeroSlider() {
                 number: '01',
                 tag: 'LEADING FACTORY SINCE 2006',
                 title: ['PILATES EQUIPMENT', 'PROFESSIONAL FOR YOUR STUDIO'],
-                description: 'Classic and Contemporary Lines with 2-year warranty.<br/>Over 35,000 studios equipped in 25+ countries.',
+                description: 'Classic and Contemporary Lines with 2-year warranty.<br/>Over 35,000 studios equipped in 36 countries.',
                 cta1: { text: 'Request a Quote', link: buildWhatsAppLink('Hello, I would like a quote for Pilates equipment.') },
                 cta2: { text: 'See More', link: '#diferencial' }
             },
@@ -614,7 +614,7 @@ function initHeroSlider() {
                 number: '03',
                 tag: 'GLOBAL LEADER',
                 title: ['THE LARGEST PILATES', 'FACTORY IN LATIN AMERICA'],
-                description: 'Exporting to 25+ countries since 2006. Own 5,000m² factory<br/>with cutting-edge technology in Brazil.',
+                description: 'Present in 36 countries since 2006. Own 5,000m² factory<br/>with cutting-edge technology in Brazil.',
                 cta1: { text: 'See More', link: '#diferencial' },
                 cta2: { text: 'Talk to an Expert', link: buildWhatsAppLink('Hello, I would like to learn more about Equipilates.') }
             }
@@ -624,7 +624,7 @@ function initHeroSlider() {
                 number: '01',
                 tag: 'FÁBRICA LÍDER DESDE 2006',
                 title: ['EQUIPOS DE PILATES', 'PROFESIONALES PARA SU ESTUDIO'],
-                description: 'Línea Clásica y Contemporánea con 2 años de garantía.<br/>Más de 35.000 estudios equipados en 25+ países.',
+                description: 'Línea Clásica y Contemporánea con 2 años de garantía.<br/>Más de 35.000 estudios equipados en 36 países.',
                 cta1: { text: 'Solicitar Cotización', link: buildWhatsAppLink('Hola, quisiera una cotización para equipos de Pilates.') },
                 cta2: { text: 'Ver Más', link: '#diferencial' }
             },
@@ -640,7 +640,7 @@ function initHeroSlider() {
                 number: '03',
                 tag: 'LÍDER GLOBAL',
                 title: ['LA MAYOR FÁBRICA', 'DE PILATES DE LATINOAMÉRICA'],
-                description: 'Exportando a 25+ países desde 2006. Fábrica propia de 5.000m²<br/>con tecnología de punta en Brasil.',
+                description: 'Presente en 36 países desde 2006. Fábrica propia de 5.000m²<br/>con tecnología de punta en Brasil.',
                 cta1: { text: 'Ver Más', link: '#diferencial' },
                 cta2: { text: 'Hablar con Experto', link: buildWhatsAppLink('Hola, me gustaría conocer más sobre Equipilates.') }
             }
@@ -650,7 +650,7 @@ function initHeroSlider() {
                 number: '01',
                 tag: 'FÜHRENDE FABRIK SEIT 2006',
                 title: ['PILATES-GERÄTE', 'PROFESSIONELL FÜR IHR STUDIO'],
-                description: 'Klassische und Zeitgenössische Linien mit 2 Jahren Garantie.<br/>Über 35.000 Studios in 25+ Ländern ausgestattet.',
+                description: 'Klassische und Zeitgenössische Linien mit 2 Jahren Garantie.<br/>Über 35.000 Studios in 36 Ländern ausgestattet.',
                 cta1: { text: 'Angebot Anfordern', link: buildWhatsAppLink('Hallo, ich möchte ein Angebot für Pilates-Geräte.') },
                 cta2: { text: 'Mehr Sehen', link: '#diferencial' }
             },
@@ -666,7 +666,7 @@ function initHeroSlider() {
                 number: '03',
                 tag: 'GLOBALER MARKTFÜHRER',
                 title: ['DIE GRÖSSTE PILATES-', 'FABRIK IN LATEINAMERIKA'],
-                description: 'Seit 2006 in 25+ Länder exportierend. Eigene 5.000m² Fabrik<br/>mit modernster Technologie in Brasilien.',
+                description: 'Seit 2006 in 36 Ländern präsent. Eigene 5.000m² Fabrik<br/>mit modernster Technologie in Brasilien.',
                 cta1: { text: 'Mehr Sehen', link: '#diferencial' },
                 cta2: { text: 'Mit Experten Sprechen', link: buildWhatsAppLink('Hallo, ich möchte mehr über Equipilates erfahren.') }
             }
@@ -1099,8 +1099,49 @@ function initGalleryFilters() {
     let currentFilter = 'all';
     
     // Supabase config (chaves públicas - seguras para frontend)
-    const SUPABASE_URL = 'https://hijmbsxcvcugnmkvldgl.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhpam1ic3hjdmN1Z25ta3ZsZGdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2Nzk1MzUsImV4cCI6MjA4NDI1NTUzNX0.Q4Hy-K8RxhVDCarj_ojD5ILb11iO4Jk7KC-5fYlrTh0';
+    // Permite override por window/meta para evitar divergência entre ambientes sem rebuild do JS.
+    const DEFAULT_SUPABASE_URL = 'https://hijmbsxcvcugnmkvldgl.supabase.co';
+    const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhpam1ic3hjdmN1Z25ta3ZsZGdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2Nzk1MzUsImV4cCI6MjA4NDI1NTUzNX0.Q4Hy-K8RxhVDCarj_ojD5ILb11iO4Jk7KC-5fYlrTh0';
+
+    function getMetaContent(name) {
+        const el = document.querySelector(`meta[name="${name}"]`);
+        return (el && typeof el.content === 'string') ? el.content.trim() : '';
+    }
+
+    function getSupabaseConfig() {
+        const winUrl = (window.EQUIPILATES_SUPABASE_URL || window.SUPABASE_URL || '').toString().trim();
+        const winKey = (window.EQUIPILATES_SUPABASE_ANON_KEY || window.SUPABASE_ANON_KEY || '').toString().trim();
+        const metaUrl = getMetaContent('equipilates-supabase-url');
+        const metaKey = getMetaContent('equipilates-supabase-anon-key');
+
+        return {
+            url: winUrl || metaUrl || DEFAULT_SUPABASE_URL,
+            anonKey: winKey || metaKey || DEFAULT_SUPABASE_ANON_KEY
+        };
+    }
+
+    function normalizeCategorySlug(category) {
+        const catObj = Array.isArray(category) ? category[0] : category;
+        const slug = catObj && typeof catObj === 'object' ? catObj.slug : '';
+        return (typeof slug === 'string') ? slug : '';
+    }
+
+    function safeUpper(value) {
+        return (typeof value === 'string' ? value : '').toUpperCase();
+    }
+
+    function logGalleryError(err, context) {
+        const payload = {
+            context,
+            name: err && err.name,
+            message: err && err.message,
+            code: err && err.code,
+            details: err && err.details,
+            hint: err && err.hint,
+            status: err && err.status
+        };
+        console.error('Erro ao carregar galeria (detalhes):', payload, err);
+    }
     
     // Mapeamento de slug de categoria para classe de filtro
     const categoryMap = {
@@ -1150,7 +1191,8 @@ function initGalleryFilters() {
                 return;
             }
             
-            var sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            const cfg = getSupabaseConfig();
+            var sb = supabase.createClient(cfg.url, cfg.anonKey);
             
             // Buscar produtos ativos com categoria
             var prodResult = await sb
@@ -1187,8 +1229,8 @@ function initGalleryFilters() {
             
             // Gerar cards HTML
             shuffled.forEach(function(product) {
-                var catSlug = product.category ? product.category.slug : '';
-                var catInfo = categoryMap[catSlug] || { filterClass: 'outros', label: catSlug.toUpperCase() };
+                var catSlug = normalizeCategorySlug(product.category);
+                var catInfo = categoryMap[catSlug] || { filterClass: 'outros', label: safeUpper(catSlug) };
                 var imgUrl = imageMap[product.id] || staticImageMap[product.slug];
                 if (!imgUrl) return; // Pular se sem nenhuma imagem
                 
@@ -1221,10 +1263,24 @@ function initGalleryFilters() {
             } catch(e) { /* silenciar erros de storage */ }
             
         } catch (err) {
-            console.error('Erro ao carregar galeria:', err);
+            logGalleryError(err, 'loadGalleryFromSupabase');
             // Só mostrar erro se não tiver conteúdo já renderizado (cache)
             if (!galleryRendered) {
-                galleryGrid.innerHTML = '<p style="text-align:center;color:#999;grid-column:1/-1;padding:40px 0;">Erro ao carregar produtos. Tente recarregar a página.</p>';
+                galleryGrid.innerHTML = [
+                    '<div style="grid-column:1/-1;padding:40px 0;text-align:center;">',
+                    '  <p style="color:#999;margin:0 0 14px;">Erro ao carregar produtos. Tente recarregar a página.</p>',
+                    '  <button type="button" data-action="retry-gallery" style="padding:10px 16px;border:1px solid rgba(0,0,0,0.2);background:#fff;border-radius:999px;font-weight:700;cursor:pointer;">Tentar novamente</button>',
+                    '</div>'
+                ].join('');
+
+                const retryBtn = galleryGrid.querySelector('[data-action="retry-gallery"]');
+                if (retryBtn) {
+                    retryBtn.addEventListener('click', () => {
+                        galleryGrid.innerHTML = '';
+                        galleryRendered = false;
+                        loadGalleryFromSupabase();
+                    });
+                }
             }
         }
     }
@@ -1235,8 +1291,8 @@ function initGalleryFilters() {
         galleryRendered = true;
         
         cached.products.forEach(function(product) {
-            var catSlug = product.category ? product.category.slug : '';
-            var catInfo = categoryMap[catSlug] || { filterClass: 'outros', label: catSlug.toUpperCase() };
+            var catSlug = normalizeCategorySlug(product.category);
+            var catInfo = categoryMap[catSlug] || { filterClass: 'outros', label: safeUpper(catSlug) };
             var imgUrl = cached.imageMap[product.id] || staticImageMap[product.slug];
             if (!imgUrl) return; // Pular se sem nenhuma imagem
             
